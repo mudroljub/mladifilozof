@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sr">
+<head>
+	<meta charset="UTF-8">
+	<title>Mladi Filozof</title>
+	<link rel="stylesheet" href="css/prikaz.css" />	
+</head>
+<body>
+
+
+	<canvas id="platno"></canvas>
+			
+	<p>Hvala drvetu koje je umrlo<br>
+	da bi ova knjiga živela.</p>
+
+
+<script>
+var platno = document.getElementById('platno');
+platno.width = window.innerWidth;
+platno.height = window.innerHeight;
+
+var sadrzaj = platno.getContext("2d");
+
+var slika = new Image();
+slika.src = "slike/hvala-drvetu.jpg";
+
+// slika dobija dimenzije tek nakon se učita
+slika.onload = function() {	
+	// razvlači visinu slike proporcionalno širini
+	sadrzaj.drawImage(slika, 0, 0, slika.width,  slika.height,    									// izvor
+						     0, 0, platno.width/2, (platno.width/2) * (slika.width/slika.height));  // prikaz 
+
+	// piše tekst
+	sadrzaj.fillStyle = "blue";
+	sadrzaj.font = "bold 16px Arial";
+	sadrzaj.fillText("Mladifilozof", 400, 100);
+}
+
+</script>	
+	
+</body>
+</html>
