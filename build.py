@@ -97,6 +97,10 @@ def page_shell(title: str, body: str, *, page_class: str = "") -> str:
 def index_page(stories: list[Story]) -> str:
     entries = []
     for story in stories:
+        # The cover is already the index page's opening section, so it does not
+        # need a duplicate entry in the table of contents.
+        if story.slug == "00-naslovna":
+            continue
         entries.append(
             f"""<li>
   <span class="toc-number">{escape(story.slug.split('-', 1)[0] if story.slug[:2].isdigit() else '—')}</span>
