@@ -52,7 +52,7 @@ TITLES = {
     "31-znao-da-su-svi-u-pravu": "Znao da su svi u pravu",
     "32-prerastao-odrastanje": "Prerastao odrastanje",
     "33-filozofovo-prorocanstvo": "Filozofovo proročanstvo",
-    "34-citati": "Citati",
+    "34-korice": "Korice",
     "xx-mu-se-spava": "Mu se spava",
 }
 
