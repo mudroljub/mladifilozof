@@ -56,16 +56,21 @@ def read_stories() -> list[Story]:
     return sorted(stories, key=lambda story: story.order)
 
 
-def paragraphs(text: str, *, bold_first_sentence: bool = False) -> str:
+def paragraphs(text: str, *, bold_opening: bool = False) -> str:
     blocks = re.split(r"\n\s*\n", text.strip())
     rendered = []
     for index, block in enumerate(blocks):
         block = block.strip()
         if not block:
             continue
-        if bold_first_sentence and index == 0:
-            ending = re.search(r"[.!?](?:[”\"']|(?=\s|$))", block)
-            end = ending.end() if ending else len(block)
+        if bold_opening and index == 0:
+            first_line_end = len(block.split("\n", 1)[0].rstrip())
+            sentence_end = re.search(r"[.!?](?:[”\"']|(?=\s|$))", block)
+            sentence_end = sentence_end.end() if sentence_end else None
+            end = min(
+                first_line_end,
+                sentence_end,
+            ) if sentence_end else first_line_end
             inline = f"<strong>{escape(block[:end])}</strong>{escape(block[end:])}"
         else:
             inline = escape(block)
@@ -143,7 +148,7 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
 <main class="story-layout">
   <article>
     <div class="story-text">
-{paragraphs(story.content, bold_first_sentence=True)}
+{paragraphs(story.content, bold_opening=True)}
     </div>
   </article>
   <nav class="story-navigation">
@@ -178,6 +183,7 @@ a:focus-visible { outline: 3px solid var(--water); outline-offset: 4px; }
 .index-intro p:first-child { font-size: clamp(3.5rem, 9vw, 7rem); line-height: .85; letter-spacing: -.07em; }
 .index-intro p + p { max-width: 28rem; margin-top: 2.75rem; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }
 .site-header { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: 5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); font: .75rem/1 var(--sans); letter-spacing: .03em; }
+.story-page .site-header { width: min(760px, calc(100% - 3rem)); }
 .wordmark { text-decoration: none; font: 600 1rem/1 var(--sans); letter-spacing: -.03em; }
 .contents-link { text-underline-offset: .3em; }
 .opening { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: min(730px, calc(100vh - 5rem)); display: grid; grid-template-columns: minmax(0, .92fr) minmax(340px, 1.08fr); align-items: center; gap: clamp(3rem, 8vw, 9rem); padding: clamp(4rem, 10vh, 8rem) 0; }
@@ -195,12 +201,12 @@ blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-l
 .toc li { break-inside: avoid; display: grid; grid-template-columns: 2.75rem 1fr; gap: .6rem; padding: 1rem 0 .9rem; border-bottom: 1px solid var(--line); font-size: 1.16rem; line-height: 1.25; }
 .toc-number { color: var(--muted); font: .72rem/1.8 var(--sans); }
 footer { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; padding: 1.6rem 0 2.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .94rem; }
-.story-layout { width: min(760px, calc(100% - 3rem)); margin: 0 auto; padding: clamp(5rem, 12vh, 10rem) 0 4rem; }
-.story-layout article { max-width: 40rem; }
+.story-layout { width: min(760px, calc(100% - 3rem)); min-height: calc(100vh - 5rem); margin: 0 auto; padding: clamp(5rem, 12vh, 10rem) 0 4rem; display: flex; flex-direction: column; }
+.story-layout article { max-width: 40rem; margin-bottom: 5rem; }
 .story-layout h1 { margin: 0 0 3rem; font-size: clamp(2.8rem, 6vw, 5.2rem); line-height: .94; letter-spacing: -.06em; }
 .story-text { font-size: clamp(1.15rem, 2vw, 1.32rem); line-height: 1.78; }
 .story-text p { margin: 0 0 1.65em; }
-.story-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 5rem; padding-top: 1.3rem; border-top: 1px solid var(--line); font: .78rem/1.45 var(--sans); }
+.story-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: auto; padding-top: 1.3rem; border-top: 1px solid var(--line); font: .78rem/1.45 var(--sans); }
 .story-navigation .next { text-align: right; }
 @media (max-width: 700px) {
   .index-layout, .site-header, .opening, .contents, footer, .story-layout { width: min(100% - 2rem, 760px); }
