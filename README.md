@@ -31,7 +31,9 @@ py dev.py --port 8080
 ## TODO
 
 - proveri je li prva rečenica u svakom fajlu zaseban pasus. ako nije izvesti me, bez menjanja.
+    30-mladi-filozof-je-osećao-svet.txt
+    34-korice.txt
 - čitati i eventualno lektorisati
     - Proveriti reči poput „kadgod”, „gdegod” i slično. Može i zajedno i odvojeno.
 - pokušati prelom teksta u stihove
-- [ ] Razmotriti tematski redosled zbirke prema [izveštaju o tematskom redosledu](izvestaj-tematski-redosled.md).
+- razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
