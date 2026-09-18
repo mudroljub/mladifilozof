@@ -17,7 +17,7 @@ Pravac: Podsecja me pomalo na nadrealizam, ali samo zbog toga shto su misli siro
 KOnstrukcija: vidi se celovitost zbirke, osim pesme "Hocju sve" koja se ne uklapa u zbirku. Ona je nakako strukturalistichka i mozhda matematichka, zbog indukcije i ciklichnosti i mislim da bi je trebalo sachuvati za neku drugachiju zbirku. Inache, svidja mi se, jer ima BASH dobru ideju ciklichnosti i mislim da bi mogao da napravish i zbirku ciklichnih pesama .  :) Ostale pesme nemaju tu konstrukcijsku ideju (ideju forme), koja se meni mnogo svidja. Ali su mi i ostale pesme lepe na drugi nachin.
 
 Prporuchila bih ti takodje da prvii stih pretvorish uvek u prvu strofu i da sve pesme pochiinju: 
-Mladi Filozof je ......(cela prva rechenicA u izdvojenom pasusu) 
+Mladi filozof je ......(cela prva rechenicA u izdvojenom pasusu) 
 U trenucima popodnevne dokolice ...
 
 ( a zatim ostalo kako si grupisao....)+

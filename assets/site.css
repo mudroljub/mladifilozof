@@ -20,7 +20,6 @@ a:focus-visible { outline: 3px solid var(--water); outline-offset: 4px; }
 .contents-link { text-underline-offset: .3em; }
 .opening { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: min(730px, calc(100vh - 5rem)); display: grid; grid-template-columns: minmax(0, .92fr) minmax(340px, 1.08fr); align-items: center; gap: clamp(3rem, 8vw, 9rem); padding: clamp(4rem, 10vh, 8rem) 0; }
 .opening-copy { max-width: 34rem; }
-.opening-kicker, .section-label { margin: 0 0 1.15rem; color: var(--water); font: 600 .72rem/1 var(--sans); letter-spacing: .09em; text-transform: uppercase; }
 h1, h2 { font-weight: 400; }
 .opening h1 { margin: 0; font-size: clamp(4.5rem, 10vw, 8.5rem); line-height: .82; letter-spacing: -.075em; }
 blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }

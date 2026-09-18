@@ -1,4 +1,4 @@
-# Predlog tematske organizacije zbirke „Mladi Filozof"
+# Predlog tematske organizacije zbirke „Mladi filozof"
 
 ## Osnovni luk zbirke
 
@@ -6,7 +6,7 @@ Zbirka prati Mladog Filozofa od nejasnog identiteta i nasilne prošlosti, preko 
 
 Oljin predlog se može razviti u pet celina:
 
-1. Portret i prošlost — ko je Mladi Filozof i šta nosi sa sobom.
+1. Portret i prošlost — ko je Mladi filozof i šta nosi sa sobom.
 2. Nežnost i potreba za drugima — ljubav, osećanja, dodir i potraga za ljudima.
 3. Svet, ideje i odrastanje — moć, znanje, vreme, sloboda i razočaranje.
 4. Pad — bes, povlačenje, zver, kamen i bol.

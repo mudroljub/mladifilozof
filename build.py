@@ -1,4 +1,4 @@
-"""Build the Mladi Filozof static site from clean UTF-8 text files.
+"""Build the Mladi filozof static site from clean UTF-8 text files.
 
 Only .txt files directly inside /tekstovi are published. Drafts in subfolders,
 such as /tekstovi/novo, are intentionally left out.
@@ -18,7 +18,7 @@ ASSETS = ROOT / "assets"
 
 # Naslovi za navigaciju. Tekstovi ostaju bez metapodataka i HTML oznaka.
 TITLES = {
-    "00-naslovna": "Mladi Filozof",
+    "00-naslovna": "Mladi filozof",
     "01-hvala": "Hvala drvetu",
     "02-o-njemu": "O njemu",
     "03-njegova-najveca-tajna": "Njegova najveća tajna",
@@ -131,7 +131,7 @@ def index_page(stories: list[Story]) -> str:
 </li>"""
         )
     body = f"""<header class="site-header">
-  <a class="wordmark" href="index.html">Mladi Filozof</a>
+  <a class="wordmark" href="index.html">Mladi filozof</a>
 </header>
 <main>
   <section class="opening" aria-labelledby="site-title">
@@ -153,7 +153,7 @@ def index_page(stories: list[Story]) -> str:
   </section>
 </main>
 """
-    return page_shell("Mladi Filozof", body)
+    return page_shell("Mladi filozof", body)
 
 
 def story_page(story: Story, index: int, stories: list[Story]) -> str:
@@ -168,14 +168,12 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
         navigation.append(f'<a class="next" href="{escape(following.slug)}.html">{escape(following.title)} →</a>')
     else:
         navigation.append('<span></span>')
-    number = story.slug.split("-", 1)[0]
     body = f"""<header class="site-header">
-  <a class="wordmark" href="../index.html">Mladi Filozof</a>
+  <a class="wordmark" href="../index.html">Mladi filozof</a>
   <a class="contents-link" href="../index.html#sadrzaj">Sadržaj</a>
 </header>
 <main class="story-layout">
   <article>
-    <p class="section-label">{escape(number)}</p>
     <h1>{escape(story.title)}</h1>
     <div class="story-text">
 {paragraphs(story.content)}
@@ -212,7 +210,6 @@ a:focus-visible { outline: 3px solid var(--water); outline-offset: 4px; }
 .contents-link { text-underline-offset: .3em; }
 .opening { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: min(730px, calc(100vh - 5rem)); display: grid; grid-template-columns: minmax(0, .92fr) minmax(340px, 1.08fr); align-items: center; gap: clamp(3rem, 8vw, 9rem); padding: clamp(4rem, 10vh, 8rem) 0; }
 .opening-copy { max-width: 34rem; }
-.opening-kicker, .section-label { margin: 0 0 1.15rem; color: var(--water); font: 600 .72rem/1 var(--sans); letter-spacing: .09em; text-transform: uppercase; }
 h1, h2 { font-weight: 400; }
 .opening h1 { margin: 0; font-size: clamp(4.5rem, 10vw, 8.5rem); line-height: .82; letter-spacing: -.075em; }
 blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }
