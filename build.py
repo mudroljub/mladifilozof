@@ -140,7 +140,7 @@ def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
       <blockquote>„Nikada važniji poduhvat nije započet — stvaranje sebe.”</blockquote>
     </div>
     <figure class="opening-image">
-      <img src="slike/{escape(cover_file)}" alt="{escape(cover_alt)}">
+      <img src="crtezi/{escape(cover_file)}" alt="{escape(cover_alt)}">
     </figure>
   </section>
   <section class="contents" id="sadrzaj" aria-labelledby="contents-title">
@@ -174,7 +174,7 @@ def story_page(
     image_markup = ""
     if image and story.slug != "00-naslovna":
         image_markup = f'''    <figure class="story-image">
-      <img src="../slike/{escape(image["file"])}" alt="{escape(image["alt"])}">
+      <img src="../crtezi/{escape(image["file"])}" alt="{escape(image["alt"])}">
     </figure>
 '''
     body = f"""<header class="site-header">

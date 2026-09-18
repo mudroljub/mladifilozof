@@ -12,20 +12,25 @@ Za drugi port:
 py dev.py --port 8080
 ```
 
-## Slike
-
-U `slike.json` se slika povezuje sa stranicom preko njenog sluga (naziva `.txt`
-fajla bez nastavka). Svaka stavka ima naziv fajla iz `slike/` i obavezni `alt`
-opis. Stranica bez stavke ostaje bez slike.
-
 ## TODO
 
+- popravi "18-mladi-filozof-je-bežao-od-ljudi" ne prikazuje novu sliku
 - dodati novo
 - ukloniti redne brojeve fajlova?
 - čitati i eventualno lektorisati
     - Proveriti reči poput „kadgod”, „gdegod” i slično. Može i zajedno i odvojeno.
 - pokušati prelom teksta u stihove
 - razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
+
+
+## ČIŠĆENJE SLIKA
+
+magick mladifilozof-drvo.jpg -colorspace Gray -contrast-stretch 0%x10% mladifilozof-drvo.png
+magick mladifilozof-drvo.jpg -colorspace Gray -level 5%,95% -contrast-stretch 0%x5% mladifilozof-drvo.png
+magick mladifilozof-drvo.jpg -colorspace Gray -level 5%,95% -median 3 -contrast-stretch 0%x5% mladifilozof-drvo.png
+magick mladifilozof-drvo.jpg -colorspace Gray -white-threshold 88% mladifilozof-drvo.png
+magick mladifilozof-drvo.jpg -colorspace Gray -level 8%,92% -contrast-stretch 0%x3% mladifilozof-drvo.png
+magick mladifilozof-drvo.jpg -colorspace Gray -white-threshold 82% mladifilozof-drvo.png
 
 ## Poziv crtačima
 
