@@ -1,17 +1,17 @@
 {
-  "00-naslovna": {
+  "naslovna": {
     "file": "mladi-filozof-medju-zgradama-damjan.jpg",
     "alt": "Mladi filozof među zgradama"
   },
-  "01-zahvalnica": {
+  "zahvalnica": {
     "file": "hvala-drvetu-urke.png",
     "alt": "Drvo"
   },
-  "21-mladi-filozof-je-postao-kamen": {
+  "mladi-filozof-je-postao-kamen": {
     "file": "autoportret-damjan.jpg",
     "alt": "Mladi filozof"
   },
-  "18-mladi-filozof-je-bežao-od-ljudi": {
+  "mladi-filozof-je-bežao-od-ljudi": {
     "file": "mladifilozof-drvo-urke.png",
     "alt": "Mladi filozof beži od ljudi"
   }

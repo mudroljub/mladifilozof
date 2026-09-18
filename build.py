@@ -17,7 +17,8 @@ TEXTS = ROOT / "tekstovi"
 PAGES = ROOT / "stranice"
 CSS = ROOT / "css"
 IMAGES = ROOT / "slike.json"
-BOLD_OPENING_EXCEPTIONS = frozenset({"34-korice"})
+CONTENTS = ROOT / "sadržaj.txt"
+BOLD_OPENING_EXCEPTIONS = frozenset({"korice"})
 
 @dataclass(frozen=True)
 class Story:
@@ -30,7 +31,7 @@ class Story:
 
 def title_for(source: Path) -> str:
     """Derive every navigation title from the source filename alone."""
-    return re.sub(r"^(?:\d{2}|xx)-", "", source.stem).replace("-", " ")
+    return re.sub(r"^xx-", "", source.stem).replace("-", " ")
 
 
 def display_title(title: str) -> str:
@@ -38,24 +39,35 @@ def display_title(title: str) -> str:
     return title[:1].upper() + title[1:]
 
 
-def sort_key(source: Path) -> tuple[int, int, str]:
-    prefix = source.stem.split("-", 1)[0]
-    if prefix.isdigit():
-        return (0, int(prefix), source.name)
-    if prefix == "xx":
-        return (2, 0, source.name)
-    return (1, 0, source.name)
+def read_contents() -> dict[str, int]:
+    """Read the intended story order from the editable contents file."""
+    if not CONTENTS.is_file():
+        raise SystemExit("Nedostaje sadržaj.txt.")
+    slugs = [
+        line.strip().removesuffix(".txt")
+        for line in CONTENTS.read_text(encoding="utf-8-sig").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    if len(slugs) != len(set(slugs)):
+        raise SystemExit("sadržaj.txt sadrži duplikate.")
+    return {slug: index for index, slug in enumerate(slugs)}
 
 
 def read_stories() -> list[Story]:
+    contents = read_contents()
     stories = []
     for source in TEXTS.glob("*.txt"):
         content = source.read_text(encoding="utf-8-sig").strip()
         if not content:
             continue
-        stories.append(
-            Story(source, source.stem, title_for(source), content, sort_key(source))
-        )
+        try:
+            order = contents[source.stem]
+        except KeyError:
+            raise SystemExit(f"Tekst nije naveden u sadržaj.txt: {source.name}")
+        stories.append(Story(source, source.stem, title_for(source), content, order))
+    missing = set(contents) - {story.slug for story in stories}
+    if missing:
+        raise SystemExit(f"U sadržaj.txt ne postoji tekst: {', '.join(sorted(missing))}")
     return sorted(stories, key=lambda story: story.order)
 
 
@@ -116,18 +128,18 @@ def page_shell(title: str, body: str, *, page_class: str = "") -> str:
 
 def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
     entries = []
-    for story in stories:
+    for index, story in enumerate(stories):
         # The cover is already the index page's opening section, so it does not
         # need a duplicate entry in the table of contents.
-        if story.slug == "00-naslovna":
+        if story.slug == "naslovna":
             continue
         entries.append(
             f"""<li>
-  <span class="toc-number">{escape(story.slug.split('-', 1)[0] if story.slug[:2].isdigit() else '—')}</span>
+  <span class="toc-number">{f'{index:02d}' if index <= 34 else '—'}</span>
   <a href="stranice/{escape(story.slug)}.html">{escape(display_title(story.title))}</a>
 </li>"""
         )
-    cover = images.get("00-naslovna")
+    cover = images.get("naslovna")
     cover_file = cover["file"] if cover else "mladi-filozof-medju-zgradama-crno-beli.jpg"
     cover_alt = cover["alt"] if cover else ""
     body = f"""<header class="site-header">
@@ -172,7 +184,7 @@ def story_page(
         navigation.append('<span></span>')
     image = images.get(story.slug)
     image_markup = ""
-    if image and story.slug != "00-naslovna":
+    if image and story.slug != "naslovna":
         image_markup = f'''    <figure class="story-image">
       <img src="../crtezi/{escape(image["file"])}" alt="{escape(image["alt"])}">
     </figure>
