@@ -30,6 +30,8 @@ py dev.py --port 8080
 
 ## TODO
 
-- [ ] Proveriti da li je prva rečenica svake pesme izdvojena u zaseban pasus; gde prirodno odgovara, može počinjati oblikom „Mladi filozof je …”.
-- [ ] Proveriti gramatičke sitnice, naročito sastavljeno pisanje reči poput „kadgod” i „gdegod”.
+- Proveriti reči poput „kadgod”, „gdegod” i slično. Obično se piše zajedno ali i odvojeno je pravilno. Videti šta bolje zvuči.
+- proveriti ima li ošišane latinice, npr. sh, ch, zh i slično umesto š, č, ć, zh...
+- proveri je li prva rečenica u svakom fajlu zaseban pasus. ako nije izvesti me, bez menjanja.
+- pokušati prelom teksta u stihove
 - [ ] Razmotriti tematski redosled zbirke prema [izveštaju o tematskom redosledu](izvestaj-tematski-redosled.md).

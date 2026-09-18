@@ -10,20 +10,20 @@ Opshti utisak: SLATKO! Podsecja me na Malog princa. :) Nekako je lepo razmishlja
 
 Stil je bash sladak i pitak. Pitkost je veoma bitna, to znachi da se ne naprezhesh kad se izrazhavash. :)
 
-Pravac: Podsecja me pomalo na nadrealizam, ali samo zbog toga shto su misli sirove i dirketne.
+Pravac: Podsecja me pomalo na nadrealizam, ali samo zbog toga shto su misli sirove i direktne.
 
 :)
 
-KOnstrukcija: vidi se celovitost zbirke, osim pesme "Hocju sve" koja se ne uklapa u zbirku. Ona je nakako strukturalistichka i mozhda matematichka, zbog indukcije i ciklichnosti i mislim da bi je trebalo sachuvati za neku drugachiju zbirku. Inache, svidja mi se, jer ima BASH dobru ideju ciklichnosti i mislim da bi mogao da napravish i zbirku ciklichnih pesama .  :) Ostale pesme nemaju tu konstrukcijsku ideju (ideju forme), koja se meni mnogo svidja. Ali su mi i ostale pesme lepe na drugi nachin.
+Konstrukcija: vidi se celovitost zbirke, osim pesme "Hocju sve" koja se ne uklapa u zbirku. Ona je nakako strukturalistichka i mozhda matematichka, zbog indukcije i ciklichnosti i mislim da bi je trebalo sachuvati za neku drugachiju zbirku. Inache, svidja mi se, jer ima BASH dobru ideju ciklichnosti i mislim da bi mogao da napravish i zbirku ciklichnih pesama .  :) Ostale pesme nemaju tu konstrukcijsku ideju (ideju forme), koja se meni mnogo svidja. Ali su mi i ostale pesme lepe na drugi nachin.
 
-Prporuchila bih ti takodje da prvii stih pretvorish uvek u prvu strofu i da sve pesme pochiinju: 
-Mladi filozof je ......(cela prva rechenicA u izdvojenom pasusu) 
+Preporuchila bih ti takodje da prvi stih pretvorish uvek u prvu strofu i da sve pesme pochinju: 
+Mladi filozof je ......(cela prva rechenica u izdvojenom pasusu) 
 U trenucima popodnevne dokolice ...
 
 ( a zatim ostalo kako si grupisao....)+
 
-Kao i da anpravish logichniji redosled. Super je shto je prva pesma o ubistvu oca, jer to mu je neka proshlost i karakter, a onda bih grupisala da idu jedna za drugom pesme o ljubavi i nezhnosti, pa o bolu, zveri i kamenu, jer prikazuju razocharenje i bes, pa o zaljubljenosti u sebe... TI ih rasporedi kako mislish da treba da su rasporedjene, to je tvoje, moj je samo predlog da ih grupishesh po slichnosti teme.Tako dobijash celinu kompozicije cele zbirke.
+Kao i da napravish logichniji redosled. Super je shto je prva pesma o ubistvu oca, jer to mu je neka proshlost i karakter, a onda bih grupisala da idu jedna za drugom pesme o ljubavi i nezhnosti, pa o bolu, zveri i kamenu, jer prikazuju razocharenje i bes, pa o zaljubljenosti u sebe... Ti ih rasporedi kako mislish da treba da su rasporedjene, to je tvoje, moj je samo predlog da ih grupishesh po slichnosti teme.Tako dobijash celinu kompozicije cele zbirke.
 
-Ispravila sma ti par gramtichkih greshkica, pa ti zato shaljem folder nazad :) (uglavno, :kadgod, gdegod i sl. se pishe zajedno, pa ako negde nisam ispravila, ispravi), a crveno sam obojila delove rechenice koji se ne mogu recji tako kao si napisao, pa bi trebalo da preformulishesh....ja ne bih da upetljam svoje u tvoju umetnost. :)
+Ispravila sma ti par gramatichkih greshkica, pa ti zato shaljem folder nazad :) (uglavno, :kadgod, gdegod i sl. se pishe zajedno, pa ako negde nisam ispravila, ispravi), a crveno sam obojila delove rechenice koji se ne mogu recji tako kao si napisao, pa bi trebalo da preformulishesh....ja ne bih da upetljam svoje u tvoju umetnost. :)
 
 Toliko od mene, sve u svemu, bash je slatko...ne znam da li si zheleo da to bude izazvana reakcija, ali u meni jeste.

@@ -16,47 +16,6 @@ TEXTS = ROOT / "tekstovi"
 PAGES = ROOT / "stranice"
 ASSETS = ROOT / "assets"
 
-# Naslovi za navigaciju. Tekstovi ostaju bez metapodataka i HTML oznaka.
-TITLES = {
-    "00-naslovna": "Mladi filozof",
-    "01-hvala": "Hvala drvetu",
-    "02-o-njemu": "O njemu",
-    "03-njegova-najveca-tajna": "Njegova najveća tajna",
-    "04-nije-hteo-ponovo-da-odraste": "Nije hteo ponovo da odraste",
-    "05-trazi-osecanja": "Traži osećanja",
-    "06-voleo-da-se-ljubi": "Voleo da se ljubi",
-    "07-igrao-sa-lazi": "Igrao se sa laži",
-    "08-proizvodio-moc": "Proizvodio moć",
-    "09-pitao-da-li-postoji": "Pitao da li postoji",
-    "10-chesto-je-moj-gost": "Često je moj gost",
-    "11-susreo-duha-vremena": "Susreo duha vremena",
-    "12-pronasao-gresku": "Pronašao grešku",
-    "13-danas-postao-chovek": "Danas postao čovek",
-    "14-bes-ga-je-savladao": "Bes ga je savladao",
-    "15-trazio-ljude": "Tražio ljude",
-    "16-isao-da-studira-filozofiju": "Išao da studira filozofiju",
-    "17-nocas-ostao-budan": "Noćas ostao budan",
-    "18-bezao-od-ljudi": "Bežao od ljudi",
-    "19-pretvorio-se-u-ono-protiv-chega-se-borio": "Pretvorio se u ono protiv čega se borio",
-    "20-bio-besan": "Bio besan",
-    "21-postao-kamen": "Postao kamen",
-    "22-povracao-bol": "Povraćao bol",
-    "23-zatvorio-ochi": "Zatvorio oči",
-    "24-gledao-sunce": "Gledao sunce",
-    "25-tri-velike-recenice": "Tri velike rečenice",
-    "26-sanjao-da-bude-slobodan": "Sanjao da bude slobodan",
-    "27-ubrao-cvet": "Ubrao cvet",
-    "28-zaljubljen-u-sebe": "Zaljubljen u sebe",
-    "29-mesec-je-nocas-lajao": "Mesec je noćas lajao",
-    "30-osecao-svet": "Osećao svet",
-    "31-znao-da-su-svi-u-pravu": "Znao da su svi u pravu",
-    "32-prerastao-odrastanje": "Prerastao odrastanje",
-    "33-filozofovo-prorocanstvo": "Filozofovo proročanstvo",
-    "34-korice": "Korice",
-    "xx-mu-se-spava": "Mu se spava",
-}
-
-
 @dataclass(frozen=True)
 class Story:
     source: Path
@@ -66,14 +25,14 @@ class Story:
     order: tuple[int, int, str]
 
 
-def title_for(source: Path, content: str) -> str:
-    """Use the clean filename as the stable title; retain the book title on 00."""
-    if source.stem in TITLES:
-        return TITLES[source.stem]
-    if source.stem == "00-naslovna":
-        return next(line.strip() for line in content.splitlines() if line.strip())
-    label = re.sub(r"^(?:\d{2}|xx)-", "", source.stem).replace("-", " ")
-    return label[:1].upper() + label[1:]
+def title_for(source: Path) -> str:
+    """Derive every navigation title from the source filename alone."""
+    return re.sub(r"^(?:\d{2}|xx)-", "", source.stem).replace("-", " ")
+
+
+def display_title(title: str) -> str:
+    """Use one consistently capitalized form wherever a title is shown."""
+    return title[:1].upper() + title[1:]
 
 
 def sort_key(source: Path) -> tuple[int, int, str]:
@@ -92,16 +51,26 @@ def read_stories() -> list[Story]:
         if not content:
             continue
         stories.append(
-            Story(source, source.stem, title_for(source, content), content, sort_key(source))
+            Story(source, source.stem, title_for(source), content, sort_key(source))
         )
     return sorted(stories, key=lambda story: story.order)
 
 
-def paragraphs(text: str) -> str:
+def paragraphs(text: str, *, bold_first_sentence: bool = False) -> str:
     blocks = re.split(r"\n\s*\n", text.strip())
-    return "\n".join(
-        f"<p>{escape(block.strip()).replace(chr(10), '<br>')}</p>" for block in blocks if block.strip()
-    )
+    rendered = []
+    for index, block in enumerate(blocks):
+        block = block.strip()
+        if not block:
+            continue
+        if bold_first_sentence and index == 0:
+            ending = re.search(r"[.!?](?:[”\"']|(?=\s|$))", block)
+            end = ending.end() if ending else len(block)
+            inline = f"<strong>{escape(block[:end])}</strong>{escape(block[end:])}"
+        else:
+            inline = escape(block)
+        rendered.append(f"<p>{inline.replace(chr(10), '<br>')}</p>")
+    return "\n".join(rendered)
 
 
 def page_shell(title: str, body: str, *, page_class: str = "") -> str:
@@ -123,11 +92,10 @@ def page_shell(title: str, body: str, *, page_class: str = "") -> str:
 def index_page(stories: list[Story]) -> str:
     entries = []
     for story in stories:
-        number = story.slug.split("-", 1)[0] if story.slug[:2].isdigit() else "—"
         entries.append(
             f"""<li>
-  <span class="toc-number">{escape(number)}</span>
-  <a href="stranice/{escape(story.slug)}.html">{escape(story.title)}</a>
+  <span class="toc-number">{escape(story.slug.split('-', 1)[0] if story.slug[:2].isdigit() else '—')}</span>
+  <a href="stranice/{escape(story.slug)}.html">{escape(display_title(story.title))}</a>
 </li>"""
         )
     body = f"""<header class="site-header">
@@ -161,11 +129,11 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
     following = stories[index + 1] if index + 1 < len(stories) else None
     navigation = []
     if previous:
-        navigation.append(f'<a href="{escape(previous.slug)}.html">← {escape(previous.title)}</a>')
+        navigation.append(f'<a href="{escape(previous.slug)}.html">← {escape(display_title(previous.title))}</a>')
     else:
         navigation.append('<span></span>')
     if following:
-        navigation.append(f'<a class="next" href="{escape(following.slug)}.html">{escape(following.title)} →</a>')
+        navigation.append(f'<a class="next" href="{escape(following.slug)}.html">{escape(display_title(following.title))} →</a>')
     else:
         navigation.append('<span></span>')
     body = f"""<header class="site-header">
@@ -174,16 +142,15 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
 </header>
 <main class="story-layout">
   <article>
-    <h1>{escape(story.title)}</h1>
     <div class="story-text">
-{paragraphs(story.content)}
+{paragraphs(story.content, bold_first_sentence=True)}
     </div>
   </article>
   <nav class="story-navigation">
     {''.join(navigation)}
   </nav>
 </main>"""
-    return page_shell(story.title, body, page_class="story-page")
+    return page_shell(display_title(story.title), body, page_class="story-page")
 
 
 def write_styles() -> None:
@@ -205,6 +172,11 @@ body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em; }
 a:hover { color: var(--water); }
 a:focus-visible { outline: 3px solid var(--water); outline-offset: 4px; }
+.index-layout { width: min(1000px, calc(100% - 3rem)); margin: 0 auto; padding: clamp(4rem, 12vh, 9rem) 0 6rem; }
+.index-intro { max-width: 42rem; margin-bottom: clamp(3rem, 8vh, 6rem); padding-bottom: 2.5rem; border-bottom: 2px solid var(--ink); }
+.index-intro p { margin: 0; }
+.index-intro p:first-child { font-size: clamp(3.5rem, 9vw, 7rem); line-height: .85; letter-spacing: -.07em; }
+.index-intro p + p { max-width: 28rem; margin-top: 2.75rem; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }
 .site-header { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: 5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); font: .75rem/1 var(--sans); letter-spacing: .03em; }
 .wordmark { text-decoration: none; font: 600 1rem/1 var(--sans); letter-spacing: -.03em; }
 .contents-link { text-underline-offset: .3em; }
@@ -231,7 +203,8 @@ footer { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; padding: 1.6rem 
 .story-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 5rem; padding-top: 1.3rem; border-top: 1px solid var(--line); font: .78rem/1.45 var(--sans); }
 .story-navigation .next { text-align: right; }
 @media (max-width: 700px) {
-  .site-header, .opening, .contents, footer, .story-layout { width: min(100% - 2rem, 760px); }
+  .index-layout, .site-header, .opening, .contents, footer, .story-layout { width: min(100% - 2rem, 760px); }
+  .index-layout { padding-top: 4rem; }
   .opening { grid-template-columns: 1fr; gap: 3rem; min-height: auto; padding: 4rem 0; }
   .opening-image { min-height: 17rem; order: -1; }
   .opening h1 { font-size: clamp(4.5rem, 22vw, 7rem); }
