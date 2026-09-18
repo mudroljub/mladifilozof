@@ -14,7 +14,6 @@ py dev.py --port 8080
 
 ## TODO
 
-- popravi "18-mladi-filozof-je-bežao-od-ljudi" ne prikazuje novu sliku
 - dodati novo
 - ukloniti redne brojeve fajlova?
 - čitati i eventualno lektorisati
