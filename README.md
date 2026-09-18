@@ -30,8 +30,8 @@ py dev.py --port 8080
 
 ## TODO
 
-- Proveriti reči poput „kadgod”, „gdegod” i slično. Obično se piše zajedno ali i odvojeno je pravilno. Videti šta bolje zvuči.
-- proveriti ima li ošišane latinice, npr. sh, ch, zh i slično umesto š, č, ć, zh...
 - proveri je li prva rečenica u svakom fajlu zaseban pasus. ako nije izvesti me, bez menjanja.
+- čitati i eventualno lektorisati
+    - Proveriti reči poput „kadgod”, „gdegod” i slično. Može i zajedno i odvojeno.
 - pokušati prelom teksta u stihove
 - [ ] Razmotriti tematski redosled zbirke prema [izveštaju o tematskom redosledu](izvestaj-tematski-redosled.md).
