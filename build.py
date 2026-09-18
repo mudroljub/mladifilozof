@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from html import escape
+import json
 from pathlib import Path
 import re
 
@@ -14,7 +15,9 @@ import re
 ROOT = Path(__file__).parent
 TEXTS = ROOT / "tekstovi"
 PAGES = ROOT / "stranice"
-ASSETS = ROOT / "assets"
+CSS = ROOT / "css"
+IMAGES = ROOT / "slike.json"
+BOLD_OPENING_EXCEPTIONS = frozenset({"34-korice"})
 
 @dataclass(frozen=True)
 class Story:
@@ -56,6 +59,23 @@ def read_stories() -> list[Story]:
     return sorted(stories, key=lambda story: story.order)
 
 
+def read_images() -> dict[str, dict[str, str]]:
+    """Read and validate the optional image metadata for each page."""
+    if not IMAGES.exists():
+        return {}
+    data = json.loads(IMAGES.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise SystemExit("slike.json mora sadržati objekat sa stranicama.")
+    for slug, image in data.items():
+        if not isinstance(image, dict) or not isinstance(image.get("file"), str):
+            raise SystemExit(f"Slika za {slug} mora imati polje 'file'.")
+        if not isinstance(image.get("alt"), str):
+            raise SystemExit(f"Slika za {slug} mora imati polje 'alt'.")
+        if not (ROOT / "slike" / image["file"]).is_file():
+            raise SystemExit(f"Slika za {slug} ne postoji: {image['file']}")
+    return data
+
+
 def paragraphs(text: str, *, bold_opening: bool = False) -> str:
     blocks = re.split(r"\n\s*\n", text.strip())
     rendered = []
@@ -85,7 +105,7 @@ def page_shell(title: str, body: str, *, page_class: str = "") -> str:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{escape(title)}</title>
-  <link rel="stylesheet" href="{'../' if page_class else ''}assets/site.css">
+  <link rel="stylesheet" href="{'../' if page_class else ''}css/site.css">
 </head>
 <body class="{page_class}">
 {body}
@@ -94,7 +114,7 @@ def page_shell(title: str, body: str, *, page_class: str = "") -> str:
 """
 
 
-def index_page(stories: list[Story]) -> str:
+def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
     entries = []
     for story in stories:
         # The cover is already the index page's opening section, so it does not
@@ -107,6 +127,9 @@ def index_page(stories: list[Story]) -> str:
   <a href="stranice/{escape(story.slug)}.html">{escape(display_title(story.title))}</a>
 </li>"""
         )
+    cover = images.get("00-naslovna")
+    cover_file = cover["file"] if cover else "mladi-filozof-medju-zgradama-crno-beli.jpg"
+    cover_alt = cover["alt"] if cover else ""
     body = f"""<header class="site-header">
   <a class="wordmark" href="index.html">Mladi filozof</a>
 </header>
@@ -117,7 +140,7 @@ def index_page(stories: list[Story]) -> str:
       <blockquote>„Nikada važniji poduhvat nije započet — stvaranje sebe.”</blockquote>
     </div>
     <figure class="opening-image">
-      <img src="slike/mladi-filozof-medju-zgradama-crno-beli.jpg" alt="">
+      <img src="slike/{escape(cover_file)}" alt="{escape(cover_alt)}">
     </figure>
   </section>
   <section class="contents" id="sadrzaj" aria-labelledby="contents-title">
@@ -133,7 +156,9 @@ def index_page(stories: list[Story]) -> str:
     return page_shell("Mladi filozof", body)
 
 
-def story_page(story: Story, index: int, stories: list[Story]) -> str:
+def story_page(
+    story: Story, index: int, stories: list[Story], images: dict[str, dict[str, str]]
+) -> str:
     previous = stories[index - 1] if index else None
     following = stories[index + 1] if index + 1 < len(stories) else None
     navigation = []
@@ -145,6 +170,13 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
         navigation.append(f'<a class="next" href="{escape(following.slug)}.html">{escape(display_title(following.title))} →</a>')
     else:
         navigation.append('<span></span>')
+    image = images.get(story.slug)
+    image_markup = ""
+    if image and story.slug != "00-naslovna":
+        image_markup = f'''    <figure class="story-image">
+      <img src="../slike/{escape(image["file"])}" alt="{escape(image["alt"])}">
+    </figure>
+'''
     body = f"""<header class="site-header">
   <a class="wordmark" href="../index.html">Mladi filozof</a>
   <a class="contents-link" href="../index.html#sadrzaj">Sadržaj</a>
@@ -152,9 +184,9 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
 <main class="story-layout">
   <article>
     <div class="story-text">
-{paragraphs(story.content, bold_opening=True)}
+{paragraphs(story.content, bold_opening=story.slug not in BOLD_OPENING_EXCEPTIONS)}
     </div>
-  </article>
+{image_markup}  </article>
   <nav class="story-navigation">
     {''.join(navigation)}
   </nav>
@@ -163,8 +195,8 @@ def story_page(story: Story, index: int, stories: list[Story]) -> str:
 
 
 def write_styles() -> None:
-    ASSETS.mkdir(exist_ok=True)
-    (ASSETS / "site.css").write_text("""@charset "UTF-8";
+    CSS.mkdir(exist_ok=True)
+    (CSS / "site.css").write_text("""@charset "UTF-8";
 :root {
   --paper: #f1f3ef;
   --ink: #16242d;
@@ -197,7 +229,7 @@ h1, h2 { font-weight: 400; }
 blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }
 .begin-link { display: inline-block; margin-top: 2.4rem; font: 600 .83rem/1 var(--sans); }
 .opening-image { margin: 0; align-self: stretch; min-height: 28rem; background: var(--night); }
-.opening-image img { width: 100%; height: 100%; display: block; object-fit: cover; mix-blend-mode: screen; opacity: .86; }
+.opening-image img { width: 100%; height: 100%; display: block; object-fit: contain; mix-blend-mode: screen; opacity: .86; }
 .contents { width: min(1000px, calc(100% - 3rem)); margin: 0 auto; padding: 7rem 0 6rem; }
 .contents-heading { display: flex; justify-content: space-between; gap: 2rem; align-items: baseline; border-bottom: 2px solid var(--ink); padding-bottom: 1.1rem; }
 .contents h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.4rem); letter-spacing: -.04em; }
@@ -207,6 +239,8 @@ blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-l
 footer { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; padding: 1.6rem 0 2.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .94rem; }
 .story-layout { width: min(760px, calc(100% - 3rem)); min-height: calc(100vh - 5rem); margin: 0 auto; padding: clamp(5rem, 12vh, 10rem) 0 4rem; display: flex; flex-direction: column; }
 .story-layout article { max-width: 40rem; margin-bottom: 5rem; }
+.story-image { margin: 4rem 0 3rem; }
+.story-image img { display: block; width: 100%; height: auto; }
 .story-layout h1 { margin: 0 0 3rem; font-size: clamp(2.8rem, 6vw, 5.2rem); line-height: .94; letter-spacing: -.06em; }
 .story-text { font-size: clamp(1.15rem, 2vw, 1.32rem); line-height: 1.78; }
 .story-text p { margin: 0 0 1.65em; }
@@ -229,14 +263,15 @@ footer { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; padding: 1.6rem 
 
 def main() -> None:
     stories = read_stories()
+    images = read_images()
     if not stories:
         raise SystemExit("Nema tekstova za objavljivanje u tekstovi/.")
     PAGES.mkdir(exist_ok=True)
     write_styles()
-    (ROOT / "index.html").write_text(index_page(stories), encoding="utf-8")
+    (ROOT / "index.html").write_text(index_page(stories, images), encoding="utf-8")
     for index, story in enumerate(stories):
         (PAGES / f"{story.slug}.html").write_text(
-            story_page(story, index, stories), encoding="utf-8"
+            story_page(story, index, stories, images), encoding="utf-8"
         )
     print(f"Napravljeno: index.html i {len(stories)} stranica iz {TEXTS.name}/.")
 

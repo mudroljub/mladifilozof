@@ -12,11 +12,12 @@ from threading import Thread
 
 ROOT = Path(__file__).parent
 TEXTS = ROOT / "tekstovi"
+IMAGES = ROOT / "slike.json"
 
 
 def source_state() -> dict[Path, int]:
     """Return mtimes for files that can change the generated site."""
-    files = [ROOT / "build.py", *TEXTS.rglob("*.txt")]
+    files = [ROOT / "build.py", IMAGES, *TEXTS.rglob("*.txt")]
     return {path: path.stat().st_mtime_ns for path in files if path.exists()}
 
 
@@ -57,7 +58,7 @@ def main() -> None:
     Thread(target=watch, args=(args.interval,), daemon=True).start()
     server = ThreadingHTTPServer(("127.0.0.1", args.port), SimpleHTTPRequestHandler)
     print(f"Sajt je dostupan na http://127.0.0.1:{args.port}/")
-    print("Pratim tekstovi/ i build.py. Za prekid pritisni Ctrl+C.")
+    print("Pratim tekstovi/, slike.json i build.py. Za prekid pritisni Ctrl+C.")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
