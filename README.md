@@ -27,3 +27,9 @@ Za drugi port:
 ```powershell
 py dev.py --port 8080
 ```
+
+## TODO
+
+- [ ] Proveriti da li je prva rečenica svake pesme izdvojena u zaseban pasus; gde prirodno odgovara, može počinjati oblikom „Mladi filozof je …”.
+- [ ] Proveriti gramatičke sitnice, naročito sastavljeno pisanje reči poput „kadgod” i „gdegod”.
+- [ ] Razmotriti tematski redosled zbirke prema [izveštaju o tematskom redosledu](izvestaj-tematski-redosled.md).
