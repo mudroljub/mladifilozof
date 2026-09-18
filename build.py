@@ -71,7 +71,7 @@ def read_images() -> dict[str, dict[str, str]]:
             raise SystemExit(f"Slika za {slug} mora imati polje 'file'.")
         if not isinstance(image.get("alt"), str):
             raise SystemExit(f"Slika za {slug} mora imati polje 'alt'.")
-        if not (ROOT / "slike" / image["file"]).is_file():
+        if not (ROOT / "crtezi" / image["file"]).is_file():
             raise SystemExit(f"Slika za {slug} ne postoji: {image['file']}")
     return data
 
