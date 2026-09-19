@@ -17,7 +17,9 @@ py dev.py --port 8080
 - čitati i lektorisati
     - Proveriti reči poput „kadgod”, „gdegod” i slično. Može i zajedno i odvojeno.
 - pokušati prelom teksta u stihove
+- dodavati prvu rečenicu na kraj gde ide
 - razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
+- Mladi filozof se pretvorio u zver: boldovati drugu rečenicu umesto prve.
 
 
 ## ČIŠĆENJE SLIKA

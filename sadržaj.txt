@@ -8,6 +8,7 @@ mladi-filozof-je-voleo-da-se-ljubi
 mladi-filozof-je-previše-razmišljao
 mladi-filozof-se-igrao-sa-laži
 mladi-filozof-je-proizvodio-moć
+mladi-filozof-je-ubijao-misao
 mladi-filozof-se-pitao-da-li-postoji
 mladi-filozof-je-često-moj-gost
 mladi-filozof-je-susreo-duha-vremena
@@ -23,6 +24,7 @@ mladi-filozof-je-bio-besan
 mladi-filozof-je-postao-kamen
 mladi-filozof-je-povraćao-bol
 mladi-filozof-je-zatvorio-oči
+mladog-filozofa-je-napala-melodija
 mladi-filozof-je-gledao-sunce
 tri-velike-rečenice
 mladi-filozof-je-sanjao-da-bude-slobodan
