@@ -51,3 +51,7 @@ KONKURS JE OTVOREN MESEC DANA.
 Nakon toga, žiri će izabrati po jedan crtež za svaki tekst i jedan za naslovnicu. Ja ću u potpunosti organizovati i finansirati izdanje knjige, a potom i promociju, sa izložbom crteža izabranih autora.
 
 Nadam se da će od svega ovoga ispasti nešto zanimljivo :)
+
+Ja ću odštampati prvi tiraž od 100 komada i organizovati promociju, sa izložbom crteža.
+
+P.s. Ako ikada u budućnosti dođe do neke zarade, zaradu ćemo deliti na osnovu broja autorskih stranica.
