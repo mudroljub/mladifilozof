@@ -15,12 +15,14 @@ py dev.py --port 8080
 ## TODO
 
 - čitati i lektorisati
-    - Proveriti reči poput „kadgod”, „gdegod” i slično. Može i zajedno i odvojeno.
-- pokušati prelom teksta u stihove
+- prelom teksta u stihove
 - dodavati prvu rečenicu na kraj gde ide
 - razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
-- Mladi filozof se pretvorio u zver: boldovati drugu rečenicu umesto prve.
-
+- boldovati drugu rečenicu umesto prve: 
+    - Mladi filozof se pretvorio u zver 
+    - Mladi filozof je osećao svet 
+- analizirati najduže, podeliti, skratiti
+- uradi detaljnu analizu tekstova i izdvoj glavne teme svakog teksta. grupiši po temama.
 
 ## ČIŠĆENJE SLIKA
 
