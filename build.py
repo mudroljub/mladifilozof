@@ -15,23 +15,32 @@ import re
 ROOT = Path(__file__).parent
 TEXTS = ROOT / "tekstovi"
 PAGES = ROOT / "stranice"
-CSS = ROOT / "css"
 IMAGES = ROOT / "slike.json"
 CONTENTS = ROOT / "sadržaj.txt"
+IMAGE_DIR = ROOT / "crtezi"
+DEFAULT_COVER_FILE = "mladi-filozof-medju-zgradama-crno-beli.jpg"
+# The xx- prefix marks texts intentionally outside the numbered collection.
+UNNUMBERED_STORY_PREFIX = "xx-"
+SENTENCE_END = re.compile(r"[.!?]+(?:[”\"']|(?=\s|$))")
 BOLD_OPENING_EXCEPTIONS = frozenset({"korice"})
+# These stories keep their opening plain and emphasize their second sentence.
+BOLD_SECOND_SENTENCE_EXCEPTIONS = frozenset({
+    "mladi-filozof-se-pretvorio-u-zver",
+    "mladi-filozof-je-osećao-svet",
+})
 
 @dataclass(frozen=True)
 class Story:
-    source: Path
     slug: str
     title: str
     content: str
-    order: tuple[int, int, str]
+    order: int
+    toc_number: int | None
 
 
 def title_for(source: Path) -> str:
     """Derive every navigation title from the source filename alone."""
-    return re.sub(r"^xx-", "", source.stem).replace("-", " ")
+    return source.stem.removeprefix(UNNUMBERED_STORY_PREFIX).replace("-", " ")
 
 
 def display_title(title: str) -> str:
@@ -39,70 +48,130 @@ def display_title(title: str) -> str:
     return title[:1].upper() + title[1:]
 
 
-def read_contents() -> dict[str, int]:
+def read_contents() -> dict[str, tuple[int, int | None]]:
     """Read the intended story order from the editable contents file."""
     if not CONTENTS.is_file():
         raise SystemExit("Nedostaje sadržaj.txt.")
-    slugs = [
-        line.strip().removesuffix(".txt")
-        for line in CONTENTS.read_text(encoding="utf-8-sig").splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
-    ]
-    if len(slugs) != len(set(slugs)):
-        raise SystemExit("sadržaj.txt sadrži duplikate.")
-    return {slug: index for index, slug in enumerate(slugs)}
+    contents: dict[str, tuple[int, int | None]] = {}
+    toc_number = 0
+    for line in CONTENTS.read_text(encoding="utf-8-sig").splitlines():
+        slug = line.strip().removesuffix(".txt")
+        if not slug:
+            continue
+        if slug.startswith("#"):
+            continue
+        if slug in contents:
+            raise SystemExit("sadržaj.txt sadrži duplikate.")
+        display_number = None
+        if slug != "naslovna" and not slug.startswith(UNNUMBERED_STORY_PREFIX):
+            toc_number += 1
+            display_number = toc_number
+        contents[slug] = (len(contents), display_number)
+    return contents
 
 
 def read_stories() -> list[Story]:
     contents = read_contents()
-    stories = []
+    stories: list[Story] = []
     for source in TEXTS.glob("*.txt"):
         content = source.read_text(encoding="utf-8-sig").strip()
         if not content:
             continue
         try:
-            order = contents[source.stem]
+            order, toc_number = contents[source.stem]
         except KeyError:
             raise SystemExit(f"Tekst nije naveden u sadržaj.txt: {source.name}")
-        stories.append(Story(source, source.stem, title_for(source), content, order))
+        stories.append(Story(source.stem, title_for(source), content, order, toc_number))
     missing = set(contents) - {story.slug for story in stories}
     if missing:
         raise SystemExit(f"U sadržaj.txt ne postoji tekst: {', '.join(sorted(missing))}")
     return sorted(stories, key=lambda story: story.order)
 
 
-def read_images() -> dict[str, dict[str, str]]:
+def image_path(file_name: str) -> Path:
+    """Return an image path only when it stays inside the image directory."""
+    image_root = IMAGE_DIR.resolve()
+    candidate = (image_root / file_name).resolve()
+    if not candidate.is_relative_to(image_root):
+        raise SystemExit(f"Slika mora biti unutar crtezi/: {file_name}")
+    return candidate
+
+
+def read_images(story_slugs: set[str]) -> dict[str, dict[str, str]]:
     """Read and validate the optional image metadata for each page."""
     if not IMAGES.exists():
-        return {}
-    data = json.loads(IMAGES.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise SystemExit("slike.json mora sadržati objekat sa stranicama.")
+        data: dict[str, dict[str, str]] = {}
+    else:
+        try:
+            data = json.loads(IMAGES.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as error:
+            raise SystemExit(f"Neispravan slike.json: {error.msg}")
+        if not isinstance(data, dict):
+            raise SystemExit("slike.json mora sadržati objekat sa stranicama.")
+    unknown_stories = set(data) - story_slugs
+    if unknown_stories:
+        raise SystemExit(
+            "Slike su navedene za nepostojeće tekstove: "
+            + ", ".join(sorted(unknown_stories))
+        )
     for slug, image in data.items():
         if not isinstance(image, dict) or not isinstance(image.get("file"), str):
             raise SystemExit(f"Slika za {slug} mora imati polje 'file'.")
         if not isinstance(image.get("alt"), str):
             raise SystemExit(f"Slika za {slug} mora imati polje 'alt'.")
-        if not (ROOT / "crtezi" / image["file"]).is_file():
+        if not image_path(image["file"]).is_file():
             raise SystemExit(f"Slika za {slug} ne postoji: {image['file']}")
+    if "naslovna" not in data and not image_path(DEFAULT_COVER_FILE).is_file():
+        raise SystemExit(f"Podrazumevana naslovna slika ne postoji: {DEFAULT_COVER_FILE}")
     return data
 
 
-def paragraphs(text: str, *, bold_opening: bool = False) -> str:
+def validate_bold_sentences(stories: list[Story]) -> None:
+    """Ensure editorial emphasis rules refer to an existing sentence."""
+    story_slugs = {story.slug for story in stories}
+    unknown_openings = BOLD_OPENING_EXCEPTIONS - story_slugs
+    unknown_second_sentences = BOLD_SECOND_SENTENCE_EXCEPTIONS - story_slugs
+    if unknown_openings or unknown_second_sentences:
+        unknown = sorted(unknown_openings | unknown_second_sentences)
+        raise SystemExit("Izuzetak za podebljavanje nema odgovarajući tekst: " + ", ".join(unknown))
+    overlapping_rules = BOLD_OPENING_EXCEPTIONS & BOLD_SECOND_SENTENCE_EXCEPTIONS
+    if overlapping_rules:
+        raise SystemExit(
+            "Tekst ne može biti u oba skupa izuzetaka za podebljavanje: "
+            + ", ".join(sorted(overlapping_rules))
+        )
+    for story in stories:
+        if story.slug in BOLD_SECOND_SENTENCE_EXCEPTIONS:
+            sentence_count = len(SENTENCE_END.findall(story.content))
+            if sentence_count < 2:
+                raise SystemExit(
+                    f"Tekst za podebljavanje druge rečenice je prekratak: {story.slug}"
+                )
+
+
+def paragraphs(
+    text: str, *, bold_opening: bool = False, bold_sentence: int | None = None
+) -> str:
     blocks = re.split(r"\n\s*\n", text.strip())
     rendered = []
+    sentence_index = 0
     for index, block in enumerate(blocks):
         block = block.strip()
         if not block:
             continue
-        if bold_opening and index == 0:
+        sentence_ends = list(SENTENCE_END.finditer(block))
+        target = bold_sentence - sentence_index if bold_sentence else None
+        sentence_index += len(sentence_ends)
+        if target and 1 <= target <= len(sentence_ends):
+            start = sentence_ends[target - 2].end() if target > 1 else 0
+            while start < len(block) and block[start].isspace():
+                start += 1
+            end = sentence_ends[target - 1].end()
+            inline = f"{escape(block[:start])}<strong>{escape(block[start:end])}</strong>{escape(block[end:])}"
+        elif bold_opening and index == 0:
             first_line_end = len(block.split("\n", 1)[0].rstrip())
-            sentence_end = re.search(r"[.!?](?:[”\"']|(?=\s|$))", block)
-            sentence_end = sentence_end.end() if sentence_end else None
-            end = min(
-                first_line_end,
-                sentence_end,
-            ) if sentence_end else first_line_end
+            sentence_end = sentence_ends[0].end() if sentence_ends else None
+            end = min(first_line_end, sentence_end) if sentence_end else first_line_end
             inline = f"<strong>{escape(block[:end])}</strong>{escape(block[end:])}"
         else:
             inline = escape(block)
@@ -128,19 +197,20 @@ def page_shell(title: str, body: str, *, page_class: str = "") -> str:
 
 def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
     entries = []
-    for index, story in enumerate(stories):
+    for story in stories:
         # The cover is already the index page's opening section, so it does not
         # need a duplicate entry in the table of contents.
         if story.slug == "naslovna":
             continue
+        display_number = f"{story.toc_number:02d}" if story.toc_number is not None else "—"
         entries.append(
             f"""<li>
-  <span class="toc-number">{f'{index:02d}' if index <= 34 else '—'}</span>
+  <span class="toc-number">{display_number}</span>
   <a href="stranice/{escape(story.slug)}.html">{escape(display_title(story.title))}</a>
 </li>"""
         )
     cover = images.get("naslovna")
-    cover_file = cover["file"] if cover else "mladi-filozof-medju-zgradama-crno-beli.jpg"
+    cover_file = cover["file"] if cover else DEFAULT_COVER_FILE
     cover_alt = cover["alt"] if cover else ""
     body = f"""<header class="site-header">
   <a class="wordmark" href="index.html">Mladi filozof</a>
@@ -196,7 +266,14 @@ def story_page(
 <main class="story-layout">
   <article>
     <div class="story-text">
-{paragraphs(story.content, bold_opening=story.slug not in BOLD_OPENING_EXCEPTIONS)}
+{paragraphs(
+    story.content,
+    bold_opening=(
+        story.slug not in BOLD_OPENING_EXCEPTIONS
+        and story.slug not in BOLD_SECOND_SENTENCE_EXCEPTIONS
+    ),
+    bold_sentence=2 if story.slug in BOLD_SECOND_SENTENCE_EXCEPTIONS else None,
+)}
     </div>
 {image_markup}  </article>
   <nav class="story-navigation">
@@ -206,86 +283,36 @@ def story_page(
     return page_shell(display_title(story.title), body, page_class="story-page")
 
 
-def write_styles() -> None:
-    CSS.mkdir(exist_ok=True)
-    (CSS / "site.css").write_text("""@charset "UTF-8";
-:root {
-  --paper: #f1f3ef;
-  --ink: #16242d;
-  --muted: #66747b;
-  --line: #b8c6c6;
-  --water: #496f7a;
-  --night: #1d3944;
-  --serif: Iowan Old Style, Palatino Linotype, Book Antiqua, Georgia, serif;
-  --sans: Avenir Next, Avenir, Segoe UI, sans-serif;
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--serif); }
-a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em; }
-a:hover { color: var(--water); }
-a:focus-visible { outline: 3px solid var(--water); outline-offset: 4px; }
-.index-layout { width: min(1000px, calc(100% - 3rem)); margin: 0 auto; padding: clamp(4rem, 12vh, 9rem) 0 6rem; }
-.index-intro { max-width: 42rem; margin-bottom: clamp(3rem, 8vh, 6rem); padding-bottom: 2.5rem; border-bottom: 2px solid var(--ink); }
-.index-intro p { margin: 0; }
-.index-intro p:first-child { font-size: clamp(3.5rem, 9vw, 7rem); line-height: .85; letter-spacing: -.07em; }
-.index-intro p + p { max-width: 28rem; margin-top: 2.75rem; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }
-.site-header { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: 5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); font: .75rem/1 var(--sans); letter-spacing: .03em; }
-.story-page .site-header { width: min(760px, calc(100% - 3rem)); }
-.wordmark { text-decoration: none; font: 600 1rem/1 var(--sans); letter-spacing: -.03em; }
-.contents-link { text-underline-offset: .3em; }
-.opening { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; min-height: min(730px, calc(100vh - 5rem)); display: grid; grid-template-columns: minmax(0, .92fr) minmax(340px, 1.08fr); align-items: center; gap: clamp(3rem, 8vw, 9rem); padding: clamp(4rem, 10vh, 8rem) 0; }
-.opening-copy { max-width: 34rem; }
-h1, h2 { font-weight: 400; }
-.opening h1 { margin: 0; font-size: clamp(4.5rem, 10vw, 8.5rem); line-height: .82; letter-spacing: -.075em; }
-blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-left: 2px solid var(--water); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.55; }
-.begin-link { display: inline-block; margin-top: 2.4rem; font: 600 .83rem/1 var(--sans); }
-.opening-image { margin: 0; align-self: stretch; min-height: 28rem; background: var(--night); }
-.opening-image img { width: 100%; height: 100%; display: block; object-fit: contain; mix-blend-mode: screen; opacity: .86; }
-.contents { width: min(1000px, calc(100% - 3rem)); margin: 0 auto; padding: 7rem 0 6rem; }
-.contents-heading { display: flex; justify-content: space-between; gap: 2rem; align-items: baseline; border-bottom: 2px solid var(--ink); padding-bottom: 1.1rem; }
-.contents h2 { margin: 0; font-size: clamp(1.5rem, 3vw, 2.4rem); letter-spacing: -.04em; }
-.toc { max-width: 42rem; list-style: none; margin: 0; padding: 0; }
-.toc li { break-inside: avoid; display: grid; grid-template-columns: 2.75rem 1fr; gap: .6rem; padding: 1rem 0 .9rem; border-bottom: 1px solid var(--line); font-size: 1.16rem; line-height: 1.25; }
-.toc-number { color: var(--muted); font: .72rem/1.8 var(--sans); }
-footer { width: min(1200px, calc(100% - 3rem)); margin: 0 auto; padding: 1.6rem 0 2.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .94rem; }
-.story-layout { width: min(760px, calc(100% - 3rem)); min-height: calc(100vh - 5rem); margin: 0 auto; padding: clamp(5rem, 12vh, 10rem) 0 4rem; display: flex; flex-direction: column; }
-.story-layout article { max-width: 40rem; margin-bottom: 5rem; }
-.story-image { margin: 4rem 0 3rem; }
-.story-image img { display: block; width: 100%; height: auto; }
-.story-layout h1 { margin: 0 0 3rem; font-size: clamp(2.8rem, 6vw, 5.2rem); line-height: .94; letter-spacing: -.06em; }
-.story-text { font-size: clamp(1.15rem, 2vw, 1.32rem); line-height: 1.78; }
-.story-text p { margin: 0 0 1.65em; }
-.story-navigation { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: auto; padding-top: 1.3rem; border-top: 1px solid var(--line); font: .78rem/1.45 var(--sans); }
-.story-navigation .next { text-align: right; }
-@media (max-width: 700px) {
-  .index-layout, .site-header, .opening, .contents, footer, .story-layout { width: min(100% - 2rem, 760px); }
-  .index-layout { padding-top: 4rem; }
-  .opening { grid-template-columns: 1fr; gap: 3rem; min-height: auto; padding: 4rem 0; }
-  .opening-image { min-height: 17rem; order: -1; }
-  .opening h1 { font-size: clamp(4.5rem, 22vw, 7rem); }
-  .contents { padding: 4rem 0; }
-  .contents-heading { display: block; }
-  .contents h2 { margin-top: .3rem; }
-  .story-layout { padding-top: 4rem; }
-}
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
-""", encoding="utf-8")
+def remove_stale_pages(current_pages: set[str]) -> list[str]:
+    """Keep the build-owned pages directory aligned with current source texts."""
+    removed = []
+    for page in sorted(PAGES.glob("*.html")):
+        if page.name in current_pages:
+            continue
+        if not page.is_file() and not page.is_symlink():
+            raise SystemExit(f"Stara generisana stranica nije fajl: {page}")
+        page.unlink()
+        removed.append(page.name)
+    return removed
 
 
 def main() -> None:
     stories = read_stories()
-    images = read_images()
     if not stories:
         raise SystemExit("Nema tekstova za objavljivanje u tekstovi/.")
+    validate_bold_sentences(stories)
+    images = read_images({story.slug for story in stories})
+    current_pages = {f"{story.slug}.html" for story in stories}
     PAGES.mkdir(exist_ok=True)
-    write_styles()
     (ROOT / "index.html").write_text(index_page(stories, images), encoding="utf-8")
     for index, story in enumerate(stories):
         (PAGES / f"{story.slug}.html").write_text(
             story_page(story, index, stories, images), encoding="utf-8"
         )
+    removed_pages = remove_stale_pages(current_pages)
     print(f"Napravljeno: index.html i {len(stories)} stranica iz {TEXTS.name}/.")
+    if removed_pages:
+        print(f"Uklonjene zastarele stranice: {', '.join(removed_pages)}")
 
 
 if __name__ == "__main__":

@@ -14,15 +14,18 @@ py dev.py --port 8080
 
 ## TODO
 
-- čitati i lektorisati
-- prelom teksta u stihove
 - dodavati prvu rečenicu na kraj gde ide
+- najduže podeliti, skratiti
 - razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
-- boldovati drugu rečenicu umesto prve: 
-    - Mladi filozof se pretvorio u zver 
-    - Mladi filozof je osećao svet 
-- analizirati najduže, podeliti, skratiti
-- uradi detaljnu analizu tekstova i izdvoj glavne teme svakog teksta. grupiši po temama.
+
+## Oljin predlog
+
+Olja predlaže da se pesme grupišu u sledeće tematske celine:
+
+- „prošlost i karakter“ (stihovi o „ubistvu oca“)
+- „ljubav i nežnost“
+- „razočarenje i bes“ (stihovi „o bolu, zveri i kamenu“)
+- „zaljubljenost u sebe“
 
 ## ČIŠĆENJE SLIKA
 
