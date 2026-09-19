@@ -15,8 +15,10 @@ py dev.py --port 8080
 ## TODO
 
 - dodavati prvu rečenicu na kraj gde ide
+- uklanjati zareze sa kraja redova?
 - najduže podeliti, skratiti
 - razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
+- pogledati još neke urketove crteže
 
 ## Oljin predlog
 
@@ -26,15 +28,6 @@ Olja predlaže da se pesme grupišu u sledeće tematske celine:
 - „ljubav i nežnost“
 - „razočarenje i bes“ (stihovi „o bolu, zveri i kamenu“)
 - „zaljubljenost u sebe“
-
-## ČIŠĆENJE SLIKA
-
-magick hvala-drvetu.jpg -colorspace Gray -contrast-stretch 0%x10% hvala-drvetu.png
-magick hvala-drvetu.jpg -colorspace Gray -level 5%,95% -contrast-stretch 0%x5% hvala-drvetu.png
-magick hvala-drvetu.jpg -colorspace Gray -level 5%,95% -median 3 -contrast-stretch 0%x5% hvala-drvetu.png
-magick hvala-drvetu.jpg -colorspace Gray -white-threshold 88% hvala-drvetu.png
-magick hvala-drvetu.jpg -colorspace Gray -level 8%,92% -contrast-stretch 0%x3% hvala-drvetu.png
-magick hvala-drvetu.jpg -colorspace Gray -white-threshold 82% hvala-drvetu.png
 
 ## Poziv crtačima
 
