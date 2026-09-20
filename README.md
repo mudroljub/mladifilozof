@@ -1,5 +1,7 @@
 # Mladi filozof
 
+Ilustrovana zbirka refleksivne poezije.
+
 ## Lokalni razvoj
 
 ```powershell

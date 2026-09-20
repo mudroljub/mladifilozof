@@ -1,6 +1,6 @@
 Mladi filozof se konačno isključio. 
 
-Dugo je gledao, slušao, čitao, 
+Dugo je gledao, slušao, čitao 
 mislio, osećao, patio. 
 Najzad je zatvorio oči, uši i dušu. 
 Zaboravio je sve. 
@@ -8,7 +8,7 @@ Zaboravio je sve.
 Ipak, još nije gotovo. 
 
 Hiljade pročitanih knjiga 
-i dalje se otvaraju u njegovoj glavi, 
+i dalje se otvaraju u njegovoj glavi 
 ali on više neće da misli. 
 Više se ne da! 
 
@@ -31,3 +31,5 @@ ali pokušava.
 i ništa ne razume. 
 Dečji osmeh zaigra mu u očima 
 i tada zna da je uspeo.
+
+Mladi filozof se konačno isključio.
