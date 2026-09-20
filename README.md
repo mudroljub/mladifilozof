@@ -16,7 +16,6 @@ py dev.py --port 8080
 
 ## TODO
 
-- pogledati još neke urketove crteže
 - najlošija: Mladi filozof je znao da su svi u pravu.
 
 ## Oljin predlog
