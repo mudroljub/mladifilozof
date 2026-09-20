@@ -21,6 +21,7 @@ py dev.py --port 8080
 - najduže podeliti, skratiti
 - razmotriti tematski redosled zbirke prema predlozeni-redosled.md.
 - pogledati još neke urketove crteže
+- najlošija: Mladi filozof je znao da su svi u pravu.
 
 ## Oljin predlog
 
