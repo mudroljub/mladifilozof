@@ -24,7 +24,6 @@ UNNUMBERED_STORY_PREFIX = "xx-"
 SENTENCE_END = re.compile(r"[.!?]+(?:[”\"']|(?=\s|$))")
 BOLD_OPENING_EXCEPTIONS = frozenset({"korice"})
 # These stories keep their opening plain and emphasize their second sentence.
-BOLD_SECOND_SENTENCE_EXCEPTIONS = frozenset({})
 
 @dataclass(frozen=True)
 class Story:
@@ -127,45 +126,18 @@ def validate_bold_sentences(stories: list[Story]) -> None:
     """Ensure editorial emphasis rules refer to an existing sentence."""
     story_slugs = {story.slug for story in stories}
     unknown_openings = BOLD_OPENING_EXCEPTIONS - story_slugs
-    unknown_second_sentences = BOLD_SECOND_SENTENCE_EXCEPTIONS - story_slugs
-    if unknown_openings or unknown_second_sentences:
-        unknown = sorted(unknown_openings | unknown_second_sentences)
+    if unknown_openings:
+        unknown = sorted(unknown_openings)
         raise SystemExit("Izuzetak za podebljavanje nema odgovarajući tekst: " + ", ".join(unknown))
-    overlapping_rules = BOLD_OPENING_EXCEPTIONS & BOLD_SECOND_SENTENCE_EXCEPTIONS
-    if overlapping_rules:
-        raise SystemExit(
-            "Tekst ne može biti u oba skupa izuzetaka za podebljavanje: "
-            + ", ".join(sorted(overlapping_rules))
-        )
-    for story in stories:
-        if story.slug in BOLD_SECOND_SENTENCE_EXCEPTIONS:
-            sentence_count = len(SENTENCE_END.findall(story.content))
-            if sentence_count < 2:
-                raise SystemExit(
-                    f"Tekst za podebljavanje druge rečenice je prekratak: {story.slug}"
-                )
-
-
-def paragraphs(
-    text: str, *, bold_opening: bool = False, bold_sentence: int | None = None
-) -> str:
+def paragraphs(text: str, *, bold_opening: bool = False) -> str:
     blocks = re.split(r"\n\s*\n", text.strip())
     rendered = []
-    sentence_index = 0
     for index, block in enumerate(blocks):
         block = block.strip()
         if not block:
             continue
         sentence_ends = list(SENTENCE_END.finditer(block))
-        target = bold_sentence - sentence_index if bold_sentence else None
-        sentence_index += len(sentence_ends)
-        if target and 1 <= target <= len(sentence_ends):
-            start = sentence_ends[target - 2].end() if target > 1 else 0
-            while start < len(block) and block[start].isspace():
-                start += 1
-            end = sentence_ends[target - 1].end()
-            inline = f"{escape(block[:start])}<strong>{escape(block[start:end])}</strong>{escape(block[end:])}"
-        elif bold_opening and index == 0:
+        if bold_opening and index == 0:
             first_line_end = len(block.split("\n", 1)[0].rstrip())
             sentence_end = sentence_ends[0].end() if sentence_ends else None
             end = min(first_line_end, sentence_end) if sentence_end else first_line_end
@@ -269,11 +241,7 @@ def story_page(
     <div class="story-text">
 {paragraphs(
     story.content,
-    bold_opening=(
-        story.slug not in BOLD_OPENING_EXCEPTIONS
-        and story.slug not in BOLD_SECOND_SENTENCE_EXCEPTIONS
-    ),
-    bold_sentence=2 if story.slug in BOLD_SECOND_SENTENCE_EXCEPTIONS else None,
+    bold_opening=story.slug not in BOLD_OPENING_EXCEPTIONS,
 )}
     </div>
 {image_markup}  </article>

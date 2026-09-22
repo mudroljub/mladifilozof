@@ -9,15 +9,7 @@ import build
 
 
 class ParagraphTests(unittest.TestCase):
-    def test_second_sentence_can_be_bolded(self) -> None:
-        rendered = build.paragraphs("Prva rečenica. Druga rečenica.", bold_sentence=2)
-
-        self.assertEqual(
-            rendered,
-            "<p>Prva rečenica. <strong>Druga rečenica.</strong></p>",
-        )
-
-    def test_second_sentence_exceptions_have_two_sentences(self) -> None:
+    def test_bold_opening_exceptions_reference_existing_stories(self) -> None:
         build.validate_bold_sentences(build.read_stories())
 
 class ContentsTests(unittest.TestCase):
