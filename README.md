@@ -16,16 +16,7 @@ py dev.py --port 8080
 
 ## TODO
 
-- najlošija: Mladi filozof je znao da su svi u pravu.
-
-## Oljin predlog
-
-Olja predlaže da se pesme grupišu u sledeće tematske celine:
-
-- „prošlost i karakter“ (stihovi o „ubistvu oca“)
-- „ljubav i nežnost“
-- „razočarenje i bes“ (stihovi „o bolu, zveri i kamenu“)
-- „zaljubljenost u sebe“
+- izabrati i uklopiti dodatne
 
 ## Poziv crtačima
 
@@ -52,4 +43,4 @@ Nadam se da će od svega ovoga ispasti nešto zanimljivo :)
 
 Ja ću odštampati prvi tiraž od 100 komada i organizovati promociju, sa izložbom crteža.
 
-P.s. Ako ikada u budućnosti dođe do neke zarade, zaradu ćemo deliti na osnovu broja autorskih stranica.
+P.s. Od ovoga ne očekujem zaradu već rashode, ali ako ikada u budućnosti dođe do neke zarade, delićemo je na osnovu broja autorskih stranica.
