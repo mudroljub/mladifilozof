@@ -20,6 +20,7 @@ mladi-filozof-je-ostao-sam
 mladi-filozof-je-tražio-ljude
 mladi-filozof-je-išao-da-studira-filozofiju
 mladi-filozof-je-noćas-ostao-budan
+mladi-filozof-je-sanjao-bez-snova
 mladi-filozof-je-bežao-od-ljudi
 mladi-filozof-se-pretvorio-u-ono-protiv-čega-se-borio
 mladi-filozof-je-bio-besan
@@ -30,6 +31,7 @@ mladog-filozofa-je-napala-melodija
 mladi-filozof-je-gledao-sunce
 tri-velike-rečenice
 mladi-filozof-je-sanjao-da-bude-slobodan
+mladi-filozof-je-voleo-svakog
 mladi-filozof-je-ubrao-cvet
 mladi-filozof-je-bio-zaljubljen-u-sebe
 mesec-je-noćas-lajao-na-mladog-filozofa
@@ -39,6 +41,4 @@ mladi-filozof-je-prerastao-odrastanje
 filozofovo-proročanstvo
 korice
 xx-mladi-filozof-je-mislio-da-bez-njega-ništa
-xx-mladi-filozof-je-sanjao-bez-snova
 xx-mladi-filozof-je-verovao-da-svet-nije-sačinjen
-xx-mladi-filozof-je-voleo-svakog
