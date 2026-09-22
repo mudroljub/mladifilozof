@@ -24,9 +24,7 @@ UNNUMBERED_STORY_PREFIX = "xx-"
 SENTENCE_END = re.compile(r"[.!?]+(?:[”\"']|(?=\s|$))")
 BOLD_OPENING_EXCEPTIONS = frozenset({"korice"})
 # These stories keep their opening plain and emphasize their second sentence.
-BOLD_SECOND_SENTENCE_EXCEPTIONS = frozenset({
-    "mladi-filozof-je-osećao-svet",
-})
+BOLD_SECOND_SENTENCE_EXCEPTIONS = frozenset({})
 
 @dataclass(frozen=True)
 class Story:
