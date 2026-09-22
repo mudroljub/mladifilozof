@@ -176,13 +176,13 @@ def paragraphs(
     return "\n".join(rendered)
 
 
-def page_shell(title: str, body: str, *, page_class: str = "") -> str:
+def page_shell(title: str, body: str, *, page_class: str = "", og_image: str = "") -> str:
     return f"""<!doctype html>
 <html lang="sr-Latn">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{escape(title)}</title>
+  <title>{escape(title)}</title>{og_image}
   <link rel="stylesheet" href="{'../' if page_class else ''}css/site.css">
 </head>
 <body class="{page_class}">
@@ -232,7 +232,11 @@ def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
   </section>
 </main>
 """
-    return page_shell("Mladi filozof", body)
+    return page_shell(
+        "Mladi filozof",
+        body,
+        og_image=f'\n  <meta property="og:image" content="https://mudroljub.github.io/mladifilozof/crtezi/{escape(cover_file, quote=True)}">',
+    )
 
 
 def story_page(
