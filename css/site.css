@@ -12,6 +12,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--serif); }
+img { max-width: 100%; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em; }
 a:hover { color: var(--water); }
 a:focus-visible { outline: 3px solid var(--water); outline-offset: 4px; }
