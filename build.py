@@ -93,10 +93,10 @@ def image_path(file_name: str) -> Path:
     return candidate
 
 
-def read_images(story_slugs: set[str]) -> dict[str, dict[str, str]]:
-    """Read and validate the optional image metadata for each page."""
+def read_images(story_slugs: set[str]) -> dict[str, str]:
+    """Read and validate the optional image file for each page."""
     if not IMAGES.exists():
-        data: dict[str, dict[str, str]] = {}
+        data: dict[str, str] = {}
     else:
         try:
             data = json.loads(IMAGES.read_text(encoding="utf-8"))
@@ -109,14 +109,12 @@ def read_images(story_slugs: set[str]) -> dict[str, dict[str, str]]:
         raise SystemExit(
             "Slike su navedene za nepostojeće tekstove: "
             + ", ".join(sorted(unknown_stories))
-        )
-    for slug, image in data.items():
-        if not isinstance(image, dict) or not isinstance(image.get("file"), str):
-            raise SystemExit(f"Slika za {slug} mora imati polje 'file'.")
-        if not isinstance(image.get("alt"), str):
-            raise SystemExit(f"Slika za {slug} mora imati polje 'alt'.")
-        if not image_path(image["file"]).is_file():
-            raise SystemExit(f"Slika za {slug} ne postoji: {image['file']}")
+    )
+    for slug, file_name in data.items():
+        if not isinstance(file_name, str):
+            raise SystemExit(f"Slika za {slug} mora biti ime fajla.")
+        if not image_path(file_name).is_file():
+            raise SystemExit(f"Slika za {slug} ne postoji: {file_name}")
     if "naslovna" not in data and not image_path(DEFAULT_COVER_FILE).is_file():
         raise SystemExit(f"Podrazumevana naslovna slika ne postoji: {DEFAULT_COVER_FILE}")
     return data
@@ -164,7 +162,7 @@ def page_shell(title: str, body: str, *, page_class: str = "", og_image: str = "
 """
 
 
-def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
+def index_page(stories: list[Story], images: dict[str, str]) -> str:
     entries = []
     for story in stories:
         # The cover is already the index page's opening section, so it does not
@@ -179,8 +177,9 @@ def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
 </li>"""
         )
     cover = images.get("naslovna")
-    cover_file = cover["file"] if cover else DEFAULT_COVER_FILE
-    cover_alt = cover["alt"] if cover else ""
+    cover_file = cover if cover else DEFAULT_COVER_FILE
+    cover_story = next(story for story in stories if story.slug == "naslovna")
+    cover_alt = display_title(cover_story.title)
     body = f"""<header class="site-header">
   <a class="wordmark" href="index.html">Mladi filozof</a>
 </header>
@@ -212,7 +211,7 @@ def index_page(stories: list[Story], images: dict[str, dict[str, str]]) -> str:
 
 
 def story_page(
-    story: Story, index: int, stories: list[Story], images: dict[str, dict[str, str]]
+    story: Story, index: int, stories: list[Story], images: dict[str, str]
 ) -> str:
     previous = stories[index - 1] if index else None
     following = stories[index + 1] if index + 1 < len(stories) else None
@@ -229,7 +228,7 @@ def story_page(
     image_markup = ""
     if image and story.slug != "naslovna":
         image_markup = f'''    <figure class="story-image">
-      <img src="../crtezi/{escape(image["file"])}" alt="{escape(image["alt"])}">
+      <img src="../crtezi/{escape(image)}" alt="{escape(display_title(story.title))}">
     </figure>
 '''
     body = f"""<header class="site-header">

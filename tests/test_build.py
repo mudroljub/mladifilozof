@@ -75,6 +75,33 @@ class StalePageCleanupTests(unittest.TestCase):
 
 
 class ImageValidationTests(unittest.TestCase):
+    def test_images_do_not_require_alt_text(self) -> None:
+        original_images = build.IMAGES
+        original_image_dir = build.IMAGE_DIR
+        try:
+            with TemporaryDirectory() as directory:
+                root = Path(directory)
+                build.IMAGE_DIR = root / "crtezi"
+                build.IMAGE_DIR.mkdir()
+                (build.IMAGE_DIR / "slika.jpg").touch()
+                build.IMAGES = root / "slike.json"
+                build.IMAGES.write_text(
+                    json.dumps(
+                        {
+                            "naslovna": "slika.jpg",
+                            "tekst": "slika.jpg",
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+
+                self.assertEqual(
+                    build.read_images({"naslovna", "tekst"})["tekst"], "slika.jpg"
+                )
+        finally:
+            build.IMAGES = original_images
+            build.IMAGE_DIR = original_image_dir
+
     def test_image_path_cannot_escape_image_directory(self) -> None:
         original_images = build.IMAGES
         original_image_dir = build.IMAGE_DIR
@@ -85,7 +112,7 @@ class ImageValidationTests(unittest.TestCase):
                 build.IMAGE_DIR.mkdir()
                 build.IMAGES = root / "slike.json"
                 build.IMAGES.write_text(
-                    json.dumps({"tekst": {"file": "../outside.jpg", "alt": "Slika"}}),
+                    json.dumps({"tekst": "../outside.jpg"}),
                     encoding="utf-8",
                 )
 

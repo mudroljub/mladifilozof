@@ -1,26 +1,9 @@
 {
-  "naslovna": {
-    "file": "mladi-filozof-medju-zgradama-damjan.jpg",
-    "alt": "Mladi filozof među zgradama"
-  },
-  "zahvalnica": {
-    "file": "hvala-drvetu-urke.png",
-    "alt": "Drvo"
-  },
-  "mladi-filozof-je-bežao-od-ljudi": {
-    "file": "mladifilozof-drvo-urke.png",
-    "alt": "Mladi filozof beži od ljudi"
-  },
-  "mladi-filozof-je-bio-zaljubljen-u-sebe": {
-    "file": "devojcica-urke.jpg",
-    "alt": "Mladi filozof je bio zaljubljen u sebe"
-  },
-  "mladi-filozof-je-povraćao-bol": {
-    "file": "demoni.jpg",
-    "alt": "Mladi filozof je povraćao bol"
-  },
-  "mladi-filozof-je-previše-razmišljao": {
-    "file": "mladi-filozof-previse-razmislja-miho.jpg",
-    "alt": "Mladi filozof je previše razmišljao"
-  }
+  "naslovna": "mladi-filozof-medju-zgradama-damjan.jpg",
+  "zahvalnica": "hvala-drvetu-urke.png",
+  "mladi-filozof-je-bežao-od-ljudi": "mladifilozof-drvo-urke.png",
+  "mladi-filozof-je-bio-zaljubljen-u-sebe": "devojcica-urke.jpg",
+  "mladi-filozof-je-povraćao-bol": "demoni.jpg",
+  "mladi-filozof-je-previše-razmišljao": "mladi-filozof-previse-razmislja-miho.jpg",
+  "mladi-filozof-je-često-moj-gost": "crtez-karotholik.jpg"
 }
