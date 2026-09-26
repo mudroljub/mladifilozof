@@ -18,3 +18,4 @@ py dev.py --port 8080
 
 - dodati stranice: kontakt i poziv crtačima
 - refaktorisati html, trenutno se pravi iz python-a
+- dodati napomenu: značilo bi mi da ispod te ilustacije (ili negde gde odgovara u samoj zbirci) piše da su ti karakteri iz mog stripa prvenca 'Prokleto igralište'
