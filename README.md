@@ -16,3 +16,5 @@ py dev.py --port 8080
 
 ## TODO
 
+- dodati stranice: kontakt i poziv crtačima
+- refaktorisati html, trenutno se pravi iz python-a
