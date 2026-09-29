@@ -10,20 +10,29 @@ from html import escape
 import json
 from pathlib import Path
 import re
+from string import Template
 
 
 ROOT = Path(__file__).parent
 TEXTS = ROOT / "tekstovi"
 PAGES = ROOT / "stranice"
+# Relative path from a page in PAGES back to the site root.
+PAGES_TO_ROOT = "../"
+TEMPLATES = ROOT / "sabloni"
 IMAGES = ROOT / "slike.json"
 CONTENTS = ROOT / "sadržaj.txt"
 IMAGE_DIR = ROOT / "crtezi"
+# Pages outside the collection: slug -> (title, source text).
+EXTRA_PAGES = {
+    "poziv-crtacima": ("Poziv crtačima", ROOT / "POZIV_CRTAČIMA.md"),
+    "kontakt": ("Kontakt", ROOT / "KONTAKT.md"),
+}
+EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 DEFAULT_COVER_FILE = "mladi-filozof-medju-zgradama-crno-beli.jpg"
 # The xx- prefix marks texts intentionally outside the numbered collection.
 UNNUMBERED_STORY_PREFIX = "xx-"
 SENTENCE_END = re.compile(r"[.!?]+(?:[”\"']|(?=\s|$))")
 BOLD_OPENING_EXCEPTIONS = frozenset({"korice"})
-# These stories keep their opening plain and emphasize their second sentence.
 
 @dataclass(frozen=True)
 class Story:
@@ -127,6 +136,8 @@ def validate_bold_sentences(stories: list[Story]) -> None:
     if unknown_openings:
         unknown = sorted(unknown_openings)
         raise SystemExit("Izuzetak za podebljavanje nema odgovarajući tekst: " + ", ".join(unknown))
+
+
 def paragraphs(text: str, *, bold_opening: bool = False) -> str:
     blocks = re.split(r"\n\s*\n", text.strip())
     rendered = []
@@ -142,27 +153,29 @@ def paragraphs(text: str, *, bold_opening: bool = False) -> str:
             inline = f"<strong>{escape(block[:end])}</strong>{escape(block[end:])}"
         else:
             inline = escape(block)
+        inline = EMAIL.sub(lambda match: f'<a href="mailto:{match[0]}">{match[0]}</a>', inline)
         rendered.append(f"<p>{inline.replace(chr(10), '<br>')}</p>")
     return "\n".join(rendered)
 
 
-def page_shell(title: str, body: str, *, page_class: str = "", og_image: str = "") -> str:
-    return f"""<!doctype html>
-<html lang="sr-Latn">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{escape(title)}</title>{og_image}
-  <link rel="stylesheet" href="{'../' if page_class else ''}css/site.css">
-</head>
-<body class="{page_class}">
-{body}
-</body>
-</html>
-"""
+def template(name: str) -> Template:
+    """Load an HTML template; the file's final newline is not part of the markup."""
+    source = TEMPLATES / f"{name}.html"
+    return Template(source.read_text(encoding="utf-8").removesuffix("\n"))
+
+
+def page_shell(title: str, body: str, *, root: str, og_image: str = "") -> str:
+    """Wrap a page body; root is the relative path from the page back to the site root."""
+    return template("osnova").substitute(
+        naslov=escape(title),
+        og_slika=og_image,
+        koren=root,
+        sadrzaj=body,
+    ) + "\n"
 
 
 def index_page(stories: list[Story], images: dict[str, str]) -> str:
+    entry = template("stavka-sadrzaja")
     entries = []
     for story in stories:
         # The cover is already the index page's opening section, so it does not
@@ -171,43 +184,24 @@ def index_page(stories: list[Story], images: dict[str, str]) -> str:
             continue
         display_number = f"{story.toc_number:02d}" if story.toc_number is not None else "—"
         entries.append(
-            f"""<li>
-  <span class="toc-number">{display_number}</span>
-  <a href="stranice/{escape(story.slug)}.html">{escape(display_title(story.title))}</a>
-</li>"""
+            entry.substitute(
+                broj=display_number,
+                slug=escape(story.slug),
+                naslov=escape(display_title(story.title)),
+            )
         )
     cover = images.get("naslovna")
     cover_file = cover if cover else DEFAULT_COVER_FILE
     cover_story = next(story for story in stories if story.slug == "naslovna")
-    cover_alt = display_title(cover_story.title)
-    body = f"""<header class="site-header">
-  <a class="wordmark" href="index.html">Mladi filozof</a>
-</header>
-<main>
-  <section class="opening" aria-labelledby="site-title">
-    <div class="opening-copy">
-      <h1 id="site-title">Mladi<br>Filozof</h1>
-      <blockquote>„Nikada važniji poduhvat nije započet — stvaranje sebe.”</blockquote>
-    </div>
-    <figure class="opening-image">
-      <img src="crtezi/{escape(cover_file)}" alt="{escape(cover_alt)}">
-    </figure>
-  </section>
-  <section class="contents" id="sadrzaj" aria-labelledby="contents-title">
-    <div class="contents-heading">
-      <h2 id="contents-title">Sadržaj</h2>
-    </div>
-    <ol class="toc">
-{''.join(entries)}
-    </ol>
-  </section>
-</main>
-"""
-    return page_shell(
-        "Mladi filozof",
-        body,
-        og_image=f'\n  <meta property="og:image" content="https://mudroljub.github.io/mladifilozof/crtezi/{escape(cover_file, quote=True)}">',
+    body = template("pocetna").substitute(
+        naslovna_slika=escape(cover_file),
+        naslovna_opis=escape(display_title(cover_story.title)),
+        stavke="".join(entries),
     )
+    og_image = template("og-slika").substitute(
+        adresa=f"https://mudroljub.github.io/mladifilozof/crtezi/{escape(cover_file, quote=True)}"
+    )
+    return page_shell("Mladi filozof", body, root="", og_image=og_image)
 
 
 def story_page(
@@ -215,40 +209,38 @@ def story_page(
 ) -> str:
     previous = stories[index - 1] if index else None
     following = stories[index + 1] if index + 1 < len(stories) else None
-    navigation = []
-    if previous:
-        navigation.append(f'<a href="{escape(previous.slug)}.html">← {escape(display_title(previous.title))}</a>')
-    else:
-        navigation.append('<span></span>')
-    if following:
-        navigation.append(f'<a class="next" href="{escape(following.slug)}.html">{escape(display_title(following.title))} →</a>')
-    else:
-        navigation.append('<span></span>')
+    empty = template("prazno-mesto").substitute()
     image = images.get(story.slug)
     image_markup = ""
     if image and story.slug != "naslovna":
-        image_markup = f'''    <figure class="story-image">
-      <img src="../crtezi/{escape(image)}" alt="{escape(display_title(story.title))}">
-    </figure>
-'''
-    body = f"""<header class="site-header">
-  <a class="wordmark" href="../index.html">Mladi filozof</a>
-  <a class="contents-link" href="../index.html#sadrzaj">Sadržaj</a>
-</header>
-<main class="story-layout">
-  <article>
-    <div class="story-text">
-{paragraphs(
-    story.content,
-    bold_opening=story.slug not in BOLD_OPENING_EXCEPTIONS,
-)}
-    </div>
-{image_markup}  </article>
-  <nav class="story-navigation">
-    {''.join(navigation)}
-  </nav>
-</main>"""
-    return page_shell(display_title(story.title), body, page_class="story-page")
+        image_markup = template("crtez").substitute(
+            slika=escape(image), opis=escape(display_title(story.title))
+        )
+    body = template("stranica").substitute(
+        tekst=paragraphs(
+            story.content,
+            bold_opening=story.slug not in BOLD_OPENING_EXCEPTIONS,
+        ),
+        crtez=image_markup,
+        prethodna=nav_link("prethodna", previous) if previous else empty,
+        sledeca=nav_link("sledeca", following) if following else empty,
+    )
+    return page_shell(display_title(story.title), body, root=PAGES_TO_ROOT)
+
+
+def nav_link(kind: str, story: Story) -> str:
+    return template(kind).substitute(
+        slug=escape(story.slug), naslov=escape(display_title(story.title))
+    )
+
+
+def extra_page(title: str, source: Path) -> str:
+    """Render a page that belongs to the site but not to the collection."""
+    if not source.is_file():
+        raise SystemExit(f"Nedostaje {source.name}.")
+    text = source.read_text(encoding="utf-8-sig").strip()
+    body = template("dodatna").substitute(tekst=paragraphs(text, bold_opening=True))
+    return page_shell(title, body, root=PAGES_TO_ROOT)
 
 
 def remove_stale_pages(current_pages: set[str]) -> list[str]:
@@ -270,13 +262,18 @@ def main() -> None:
         raise SystemExit("Nema tekstova za objavljivanje u tekstovi/.")
     validate_bold_sentences(stories)
     images = read_images({story.slug for story in stories})
-    current_pages = {f"{story.slug}.html" for story in stories}
+    clashes = set(EXTRA_PAGES) & {story.slug for story in stories}
+    if clashes:
+        raise SystemExit(f"Tekst ima isto ime kao dodatna stranica: {', '.join(sorted(clashes))}")
+    current_pages = {f"{slug}.html" for slug in [*(story.slug for story in stories), *EXTRA_PAGES]}
     PAGES.mkdir(exist_ok=True)
     (ROOT / "index.html").write_text(index_page(stories, images), encoding="utf-8")
     for index, story in enumerate(stories):
         (PAGES / f"{story.slug}.html").write_text(
             story_page(story, index, stories, images), encoding="utf-8"
         )
+    for slug, (title, source) in EXTRA_PAGES.items():
+        (PAGES / f"{slug}.html").write_text(extra_page(title, source), encoding="utf-8")
     removed_pages = remove_stale_pages(current_pages)
     print(f"Napravljeno: index.html i {len(stories)} stranica iz {TEXTS.name}/.")
     if removed_pages:
