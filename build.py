@@ -176,6 +176,7 @@ def page_shell(title: str, body: str, *, root: str, og_image: str = "") -> str:
 
 def index_page(stories: list[Story], images: dict[str, str]) -> str:
     entry = template("stavka-sadrzaja")
+    illustrated = template("oznaka-crteza").substitute()
     entries = []
     for story in stories:
         # The cover is already the index page's opening section, so it does not
@@ -188,6 +189,7 @@ def index_page(stories: list[Story], images: dict[str, str]) -> str:
                 broj=display_number,
                 slug=escape(story.slug),
                 naslov=escape(display_title(story.title)),
+                oznaka=illustrated if story.slug in images else "",
             )
         )
     cover = images.get("naslovna")

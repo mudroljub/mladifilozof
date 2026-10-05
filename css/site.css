@@ -40,6 +40,7 @@ blockquote { max-width: 26rem; margin: 3rem 0 0; padding-left: 1.25rem; border-l
 .toc { max-width: var(--text-width); list-style: none; margin: 0; padding: 0; }
 .toc li { display: grid; grid-template-columns: 2.75rem 1fr; gap: .6rem; padding: 1rem 0 .9rem; border-bottom: 1px solid var(--line); font-size: 1.16rem; line-height: 1.25; }
 .toc-number { color: var(--muted); font: var(--font-small)/1.8 var(--sans); }
+.toc-illustrated { margin-left: .4em; font-size: .85em; filter: grayscale(1); }
 .story-layout { min-height: calc(100vh - 5rem); padding: clamp(5rem, 12vh, 10rem) 0 4rem; display: flex; flex-direction: column; }
 .story-layout article { max-width: var(--text-width); margin-bottom: 5rem; }
 .story-image { margin: 4rem 0 3rem; }
