@@ -16,4 +16,4 @@ py dev.py --port 8080
 
 ## TODO
 
-- dodati napomenu: značilo bi mi da ispod te ilustacije (ili negde gde odgovara u samoj zbirci) piše da su ti karakteri iz mog stripa prvenca 'Prokleto igralište'
+- dodati napomenu: karakteri su iz mog stripa prvenca 'Prokleto igralište'
