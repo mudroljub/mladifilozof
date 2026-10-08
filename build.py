@@ -28,7 +28,7 @@ EXTRA_PAGES = {
     "kontakt": ("Kontakt", ROOT / "KONTAKT.md"),
 }
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-DEFAULT_COVER_FILE = "mladi-filozof-medju-zgradama-crno-beli.jpg"
+SITE_URL = "https://mudroljub.github.io/mladifilozof/"
 # The xx- prefix marks texts intentionally outside the numbered collection.
 UNNUMBERED_STORY_PREFIX = "xx-"
 SENTENCE_END = re.compile(r"[.!?]+(?:[”\"']|(?=\s|$))")
@@ -105,16 +105,17 @@ def image_path(file_name: str) -> Path:
 
 
 def read_images(story_slugs: set[str]) -> dict[str, str]:
-    """Read and validate the optional image file for each page."""
-    if not IMAGES.exists():
-        data: dict[str, str] = {}
-    else:
-        try:
-            data = json.loads(IMAGES.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as error:
-            raise SystemExit(f"Neispravan slike.json: {error.msg}")
-        if not isinstance(data, dict):
-            raise SystemExit("slike.json mora sadržati objekat sa stranicama.")
+    """Read and validate the image file for each illustrated page."""
+    if not IMAGES.is_file():
+        raise SystemExit("Nedostaje slike.json.")
+    try:
+        data = json.loads(IMAGES.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"Neispravan slike.json: {error.msg}")
+    if not isinstance(data, dict):
+        raise SystemExit("slike.json mora sadržati objekat sa stranicama.")
+    if "naslovna" not in data:
+        raise SystemExit("slike.json mora navesti sliku za naslovnu.")
     unknown_stories = set(data) - story_slugs
     if unknown_stories:
         raise SystemExit(
@@ -126,8 +127,6 @@ def read_images(story_slugs: set[str]) -> dict[str, str]:
             raise SystemExit(f"Slika za {slug} mora biti ime fajla.")
         if not image_path(file_name).is_file():
             raise SystemExit(f"Slika za {slug} ne postoji: {file_name}")
-    if "naslovna" not in data and not image_path(DEFAULT_COVER_FILE).is_file():
-        raise SystemExit(f"Podrazumevana naslovna slika ne postoji: {DEFAULT_COVER_FILE}")
     return data
 
 
@@ -166,11 +165,14 @@ def template(name: str) -> Template:
     return Template(source.read_text(encoding="utf-8").removesuffix("\n"))
 
 
-def page_shell(title: str, body: str, *, root: str, og_image: str = "") -> str:
-    """Wrap a page body; root is the relative path from the page back to the site root."""
+def page_shell(title: str, body: str, *, root: str, cover: str) -> str:
+    """Wrap a page body; root is the relative path from the page back to the site root.
+
+    Every page shares the cover drawing as its link preview image.
+    """
     return template("osnova").substitute(
         naslov=escape(title),
-        og_slika=og_image,
+        og_slika=escape(f"{SITE_URL}crtezi/{cover}"),
         koren=root,
         sadrzaj=body,
     ) + "\n"
@@ -193,18 +195,14 @@ def index_page(stories: list[Story], images: dict[str, str]) -> str:
                 oznaka=ILLUSTRATED_MARK if story.slug in images else "",
             )
         )
-    cover = images.get("naslovna")
-    cover_file = cover if cover else DEFAULT_COVER_FILE
+    cover = images["naslovna"]
     cover_story = next(story for story in stories if story.slug == "naslovna")
     body = template("pocetna").substitute(
-        naslovna_slika=escape(cover_file),
+        naslovna_slika=escape(cover),
         naslovna_opis=escape(display_title(cover_story.title)),
         stavke="".join(entries),
     )
-    og_image = template("og-slika").substitute(
-        adresa=f"https://mudroljub.github.io/mladifilozof/crtezi/{escape(cover_file, quote=True)}"
-    )
-    return page_shell("Mladi filozof", body, root="", og_image=og_image)
+    return page_shell("Mladi filozof", body, root="", cover=cover)
 
 
 def story_page(
@@ -228,7 +226,7 @@ def story_page(
         prethodna=nav_link("prethodna", previous) if previous else empty,
         sledeca=nav_link("sledeca", following) if following else empty,
     )
-    return page_shell(display_title(story.title), body, root=PAGES_TO_ROOT)
+    return page_shell(display_title(story.title), body, root=PAGES_TO_ROOT, cover=images["naslovna"])
 
 
 def nav_link(kind: str, story: Story) -> str:
@@ -237,13 +235,13 @@ def nav_link(kind: str, story: Story) -> str:
     )
 
 
-def extra_page(title: str, source: Path) -> str:
+def extra_page(title: str, source: Path, cover: str) -> str:
     """Render a page that belongs to the site but not to the collection."""
     if not source.is_file():
         raise SystemExit(f"Nedostaje {source.name}.")
     text = source.read_text(encoding="utf-8-sig").strip()
     body = template("dodatna").substitute(tekst=paragraphs(text, bold_opening=True))
-    return page_shell(title, body, root=PAGES_TO_ROOT)
+    return page_shell(title, body, root=PAGES_TO_ROOT, cover=cover)
 
 
 def remove_stale_pages(current_pages: set[str]) -> list[str]:
@@ -276,7 +274,7 @@ def main() -> None:
             story_page(story, index, stories, images), encoding="utf-8"
         )
     for slug, (title, source) in EXTRA_PAGES.items():
-        (PAGES / f"{slug}.html").write_text(extra_page(title, source), encoding="utf-8")
+        (PAGES / f"{slug}.html").write_text(extra_page(title, source, images["naslovna"]), encoding="utf-8")
     removed_pages = remove_stale_pages(current_pages)
     print(f"Napravljeno: index.html i {len(stories)} stranica iz {TEXTS.name}/.")
     if removed_pages:
