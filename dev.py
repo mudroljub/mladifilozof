@@ -44,6 +44,12 @@ def watch(interval: float) -> None:
             previous = source_state()
 
 
+class DevServer(ThreadingHTTPServer):
+    # HTTPServer enables SO_REUSEADDR, which on Windows lets this server silently
+    # share a port another process (e.g. WSL's relay) already listens on.
+    allow_reuse_address = False
+
+
 def main() -> None:
     # PowerShell/Windows consoles may still expose a legacy code page.
     # Explicit UTF-8 keeps Serbian help and status text reliable.
@@ -56,9 +62,14 @@ def main() -> None:
     parser.add_argument("--interval", type=float, default=1.0, help="Učestalost provere u sekundama.")
     args = parser.parse_args()
 
+    try:
+        server = DevServer(("127.0.0.1", args.port), SimpleHTTPRequestHandler)
+    except OSError as error:
+        raise SystemExit(
+            f"Port {args.port} je zauzet ({error.strerror}). Pokreni sa drugim portom, npr. --port 8080."
+        )
     rebuild()
     Thread(target=watch, args=(args.interval,), daemon=True).start()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), SimpleHTTPRequestHandler)
     print(f"Sajt je dostupan na http://127.0.0.1:{args.port}/")
     print("Pratim tekstovi/, sabloni/, sadržaj.txt, slike.json i build.py. Za prekid pritisni Ctrl+C.")
     try:
