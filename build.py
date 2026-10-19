@@ -20,6 +20,9 @@ PAGES = ROOT / "stranice"
 PAGES_TO_ROOT = "../"
 TEMPLATES = ROOT / "sabloni"
 IMAGES = ROOT / "slike.json"
+# Author tag at the end of a drawing's file name -> name shown on the site.
+AUTHORS = ROOT / "autori.json"
+AUTHORS_PAGE = "autori-ilustracija"
 CONTENTS = ROOT / "sadržaj.txt"
 IMAGE_DIR = ROOT / "crtezi"
 # Pages outside the collection: slug -> (title, source text).
@@ -130,6 +133,48 @@ def read_images(story_slugs: set[str]) -> dict[str, str]:
     return data
 
 
+def read_authors() -> dict[str, str]:
+    if not AUTHORS.is_file():
+        raise SystemExit("Nedostaje autori.json.")
+    try:
+        data = json.loads(AUTHORS.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        raise SystemExit(f"Neispravan autori.json: {error.msg}")
+    if not isinstance(data, dict) or not all(isinstance(name, str) for name in data.values()):
+        raise SystemExit("autori.json mora povezati oznaku autora sa imenom.")
+    return data
+
+
+def author_of(file_name: str, authors: dict[str, str]) -> str:
+    """Return the author tag that ends the drawing's file name."""
+    stem = Path(file_name).stem
+    matches = [tag for tag in authors if stem.endswith(f"-{tag}")]
+    if len(matches) != 1:
+        raise SystemExit(f"Ime crteža mora se završavati tačno jednom oznakom iz autori.json: {file_name}")
+    return matches[0]
+
+
+def credits_markup(stories: list[Story], images: dict[str, str], authors: dict[str, str]) -> str:
+    """List each author's illustrated stories in contents order."""
+    by_author: dict[str, list[Story]] = {tag: [] for tag in authors}
+    for story in stories:
+        if story.slug in images:
+            by_author[author_of(images[story.slug], authors)].append(story)
+    author = template("autor")
+    link = template("link-pesme")
+    return "\n".join(
+        author.substitute(
+            ime=escape(authors[tag]),
+            pesme="<br>".join(
+                link.substitute(slug=escape(story.slug), naslov=escape(display_title(story.title)))
+                for story in illustrated
+            ),
+        )
+        for tag, illustrated in by_author.items()
+        if illustrated
+    )
+
+
 def validate_bold_sentences(stories: list[Story]) -> None:
     """Ensure editorial emphasis rules refer to an existing sentence."""
     story_slugs = {story.slug for story in stories}
@@ -206,7 +251,7 @@ def index_page(stories: list[Story], images: dict[str, str]) -> str:
 
 
 def story_page(
-    story: Story, index: int, stories: list[Story], images: dict[str, str]
+    story: Story, index: int, stories: list[Story], images: dict[str, str], appendix: str
 ) -> str:
     previous = stories[index - 1] if index else None
     following = stories[index + 1] if index + 1 < len(stories) else None
@@ -221,7 +266,7 @@ def story_page(
         tekst=paragraphs(
             story.content,
             bold_opening=story.slug not in BOLD_OPENING_EXCEPTIONS,
-        ),
+        ) + appendix,
         crtez=image_markup,
         prethodna=nav_link("prethodna", previous) if previous else empty,
         sledeca=nav_link("sledeca", following) if following else empty,
@@ -269,9 +314,13 @@ def main() -> None:
     current_pages = {f"{slug}.html" for slug in [*(story.slug for story in stories), *EXTRA_PAGES]}
     PAGES.mkdir(exist_ok=True)
     (ROOT / "index.html").write_text(index_page(stories, images), encoding="utf-8")
+    if AUTHORS_PAGE not in {story.slug for story in stories}:
+        raise SystemExit(f"U sadržaj.txt nedostaje {AUTHORS_PAGE}.")
+    credits = credits_markup(stories, images, read_authors())
     for index, story in enumerate(stories):
+        appendix = "\n" + credits if story.slug == AUTHORS_PAGE else ""
         (PAGES / f"{story.slug}.html").write_text(
-            story_page(story, index, stories, images), encoding="utf-8"
+            story_page(story, index, stories, images, appendix), encoding="utf-8"
         )
     for slug, (title, source) in EXTRA_PAGES.items():
         (PAGES / f"{slug}.html").write_text(extra_page(title, source, images["naslovna"]), encoding="utf-8")

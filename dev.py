@@ -19,7 +19,7 @@ CONTENTS = ROOT / "sadržaj.txt"
 
 def source_state() -> dict[Path, int]:
     """Return mtimes for files that can change the generated site."""
-    files = [ROOT / "build.py", IMAGES, CONTENTS, *TEXTS.rglob("*.txt"), *TEMPLATES.glob("*.html"), *ROOT.glob("*.md")]
+    files = [ROOT / "build.py", IMAGES, ROOT / "autori.json", CONTENTS, *TEXTS.rglob("*.txt"), *TEMPLATES.glob("*.html"), *ROOT.glob("*.md")]
     return {path: path.stat().st_mtime_ns for path in files if path.exists()}
 
 
