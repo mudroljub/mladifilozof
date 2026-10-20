@@ -16,4 +16,4 @@ py dev.py --port 8080
 
 ## TODO
 
-- dodati napomenu: karakteri su iz mog stripa prvenca 'Prokleto igralište'
+- dodati napomenu: crtež Aleksandra Petrikanovića je iz njegovog stripa Prokleto igralište
